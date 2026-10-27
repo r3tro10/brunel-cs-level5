@@ -16,7 +16,7 @@
     valid_graph(matrixB) would return false.
 */
 
-public class Question_1 {
+public class Lab3_Question1 {
     public static boolean valid_graph(int[][] matrix){
 
     }

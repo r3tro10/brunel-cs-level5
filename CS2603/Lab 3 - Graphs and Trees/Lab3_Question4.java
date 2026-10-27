@@ -19,7 +19,7 @@
 
     postorder(tree.root) would print 4 5 2 6 3 1
 */
-public class Question_4 {
+public class Lab3_Question4 {
     public static void postorder(Node node){
 
     }

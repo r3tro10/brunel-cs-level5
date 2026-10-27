@@ -9,7 +9,7 @@
     For example fib(7) would return 13.
 */
 
-public class Question_3 {
+public class Lab1_Question3 {
     private static int fib(int n){
 
     }

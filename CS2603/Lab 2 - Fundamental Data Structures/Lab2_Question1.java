@@ -10,7 +10,7 @@
     For example balanced("((x+y)+7+2") would return false.
 */
 
-public class Question_1 {
+public class Lab2_Question1 {
     public static boolean balanced(String exp) {
 
     }

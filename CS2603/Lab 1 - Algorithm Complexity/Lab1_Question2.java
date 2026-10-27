@@ -8,7 +8,7 @@
     Ignoring any outliers, what do you notice about the graph?
 */
 
-public class Question_2 {
+public class Lab1_Question2 {
     private static long algB(int[][] A, long m, long n) {
         
     }

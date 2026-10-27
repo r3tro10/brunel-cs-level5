@@ -9,7 +9,7 @@
     Given that l contains the elements 0,6,3,7,2,8 in this order, swap(l, 0, 3) would return a linked list containing 7,6,3,0,2,8.
 */
 
-public class Question_3 {
+public class Lab2_Question3 {
 
     public static void main(String[] args) {
         

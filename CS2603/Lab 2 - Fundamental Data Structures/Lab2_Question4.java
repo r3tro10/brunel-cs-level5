@@ -10,7 +10,7 @@
     For example anagram("big, bug") would return false.
 */
 
-public class Question_4 {
+public class Lab2_Question4 {
     public static boolean anagram(String x, String y){
 
     }

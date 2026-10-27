@@ -10,8 +10,7 @@
     int[] arr = new int[]{1, 3, 4, 3, 4, 7, 2, 4, 3}
     kfreq(2, arr) would return {3, 4}.
 */
-
-public class Question_1 {
+public class Lab4_Question1 {
     public static int[] kfreq(int k, int[] arr){
 
     }

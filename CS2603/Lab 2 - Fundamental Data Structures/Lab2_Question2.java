@@ -23,7 +23,7 @@
     1	1	7	2	7	1	2	6	3	1
 */
 
-public class Question_2 {
+public class Lab2_Question2 {
     public static int dequeue(){
 
     }

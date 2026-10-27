@@ -9,12 +9,15 @@ import java.lang.Math;
     Ignoring any outliers, what do you notice about the graph?
 */
 
-public class Question_1 {
+public class Lab1_Question1 {
     private static long algA(long n){
         int x = 0;
+        long startTime = System.nanoTime();
         for (int i = 2; i <= n; i += 2) {
             x += i;
         }
+        long endTime = System.nanoTime();
+        System.out.println("Time: " + (endTime - startTime) + " ns");
         return x;
     }
     public static void main(String[] args) {

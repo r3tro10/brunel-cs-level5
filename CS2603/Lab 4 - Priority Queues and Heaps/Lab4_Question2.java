@@ -17,7 +17,7 @@
     h.insert(5, 'D') would insert node (5,𝐷) into h. After insertion, upHeap(i) would need to be carried out, where i is the index position of node (5,𝐷) in h (right-most leaf, last element in array heap).
     h.removeMin() would remove node (5,𝐷) from h. During the removal, the root would need to be swapped with the right-most leaf. downHeap(i) would need to be carried out, where i is the index position of the node with the smallest value k in h (now stored at the root, first element in array heap).
 */
-public class Question_2 {
+public class Lab4_Question2 {
     public class MinHeap {
         public E[] heap;
         private int size;
