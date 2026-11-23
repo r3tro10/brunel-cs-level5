@@ -1,0 +1,851 @@
+Directory structure:
+└── CS2603/
+    ├── Lab 1 - Algorithm Complexity/
+    │   ├── algA_plot.py
+    │   ├── algA_results.csv
+    │   ├── Lab1_Question1.java
+    │   ├── Lab1_Question2.java
+    │   └── Lab1_Question3.java
+    ├── Lab 2 - Fundamental Data Structures/
+    │   ├── Lab2_Question1.java
+    │   ├── Lab2_Question2.java
+    │   ├── Lab2_Question3.java
+    │   └── Lab2_Question4.java
+    ├── Lab 3 - Graphs and Trees/
+    │   ├── Lab3_Question1.java
+    │   ├── Lab3_Question2.java
+    │   ├── Lab3_Question3.java
+    │   └── Lab3_Question4.java
+    ├── Lab 4 - Priority Queues and Heaps/
+    │   ├── Lab4_Question1.java
+    │   └── Lab4_Question2.java
+    ├── Lab 5 - Sorting Alogrithms I/
+    │   ├── Lab5_Question1.java
+    │   ├── Lab5_Question2.java
+    │   └── Lab5_Question3.java
+    ├── Lab 6 - Sorting Alogrithms II/
+    │   ├── Lab6_Question1.java
+    │   ├── Lab6_Question2.java
+    │   └── Lab6_Question3.java
+    └── Lab 7 - Graph Algorithms/
+        ├── Lab7_Question1.java
+        ├── Lab7_Question2.java
+        └── Lab7_Question3.java
+
+================================================
+FILE: CS2603/Lab 1 - Algorithm Complexity/algA_plot.py
+================================================
+from pathlib import Path
+import pandas as pd
+import matplotlib.pyplot as plt
+
+csv_path = Path(__file__).parent / "algA_results.csv"
+data = pd.read_csv(csv_path)
+
+plt.plot(data["n"], data["elapsed"], marker="o")
+
+plt.xscale("log", base=10)
+plt.yscale("log", base=10)
+
+plt.xlabel("Input size n")
+plt.ylabel("Execution time (nanoseconds)")
+
+plt.title("Algorithm A: Input Size vs Execution Time")
+plt.grid(True)
+plt.show()
+
+
+================================================
+FILE: CS2603/Lab 1 - Algorithm Complexity/algA_results.csv
+================================================
+n,elapsed
+1000,3375
+10000,35666
+100000,265750
+1000000,549458
+10000000,1801834
+100000000,13569708
+1000000000,124953000
+
+
+
+================================================
+FILE: CS2603/Lab 1 - Algorithm Complexity/Lab1_Question1.java
+================================================
+import java.lang.Math;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+
+/*
+    Question:
+    (1) Implement the method private static long algA(long n) above and check your answer below.
+
+    (2) Then use Eclipse to measure the running time of your implementation. Run your implementation with 𝑛 = 10³, 10⁴, 10⁵, ... 10⁸, 10⁹.
+
+    (3) Using Python or Excel, plot 𝑛 on the 𝑥 axis and time on the 𝑦 axis.
+    Ignoring any outliers, what do you notice about the graph?
+*/
+
+public class Lab1_Question1 {
+    private static long algA(long n) {
+        long x = 0;
+        for (long i = 2; i <= n; i += 2) {
+            x += i;
+        }
+        return x;
+    }
+    public static void main(String[] args) {
+        String filename = "Lab 1 - Algorithm Complexity/algA_results.csv";
+
+        try(BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
+            writer.write("n,elapsed");
+            writer.newLine();
+
+            for (int i = 3; i <= 9; ++i) {
+                long n = (long) Math.pow(10, i);
+
+                long startTime = System.nanoTime();
+                long result = algA(n);
+                long endTime = System.nanoTime();
+
+                long elapsed = endTime - startTime;
+
+                writer.write(n + "," + elapsed);
+                writer.newLine();
+
+                System.out.println("n = " + n + ", result = " + result + ", time = " + elapsed + "ns");
+            }
+        } catch (IOException e) {
+            System.err.println("Error writing to file: " + e.getMessage());
+        }
+    }
+}
+
+
+
+================================================
+FILE: CS2603/Lab 1 - Algorithm Complexity/Lab1_Question2.java
+================================================
+import java.util.ArrayList;
+/*
+    Question:
+    (1) Implement the method private static long algB(int[][] A, long m, long n) above and check your answer below.
+
+    (2) Use Eclipse to measure the running time of your implementation using 𝑛 = 𝑚 = 100, 200, 300, 400 ... 800, 900. Populate 𝐴 with random values.
+
+    (3) Using Python or Excel, plot 𝑛 on the 𝑥 axis and time on the 𝑦 axis.
+    Ignoring any outliers, what do you notice about the graph?
+*/
+public class Lab1_Question2 {
+        private static long algB(int[][] A, long m, long n) {
+        long x = 0;
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                if (A[i][j] > x) {
+                    x = A[i][j];
+                }
+            }
+        }
+        return x;
+    }
+
+    public static void main(String[] args) {
+        long m = 0;
+        long n = 0;
+
+        ArrayList<long[]> list = new ArrayList<>();
+
+        // loop to populate with rand val
+
+        // call algB and store result
+
+        
+    }
+}
+
+
+
+================================================
+FILE: CS2603/Lab 1 - Algorithm Complexity/Lab1_Question3.java
+================================================
+/*
+    Context:
+    The Fibonacci sequence is a series of numbers where each number is the sum of the two preceding ones, starting with 0 and 1. The sequence goes 0, 1, 1, 2, 3, 5, 8, 13, and so on, and can be defined by the formula 𝐹(𝑛)=𝐹(𝑛−1)+𝐹(𝑛−2) for 𝑛>1.
+
+    Question:
+    Write a Java method private static int fib(int n) that returns the correct number in the Fibonacci sequence given the index position as input parameter n.
+
+    Example:
+    For example fib(7) would return 13.
+*/
+
+public class Lab1_Question3 {
+    private static int fib(int n){
+
+    }
+    public static void main(String[] args) {
+        
+    }
+}
+
+
+
+================================================
+FILE: CS2603/Lab 2 - Fundamental Data Structures/Lab2_Question1.java
+================================================
+/*
+    Context:
+    In a mathematical formula, parentheses () group operations. They can be nested, with the innermost sets evaluated first. For an equation to be mathematically valid, the parentheses must be balanced in their placement to group operations correctly according to the order of operations.
+
+    Question:
+    Write a method public static boolean balanced(String exp) that returns true or false depending on whether the given mathematical equation exp is valid.*
+
+    Example:
+    For example balanced("((x+y)+7)+2") would return true.
+    For example balanced("((x+y)+7+2") would return false.
+*/
+
+public class Lab2_Question1 {
+    public static boolean balanced(String exp) {
+
+    }
+    public static void main(String[] args) {
+        
+    }
+}
+
+
+
+================================================
+FILE: CS2603/Lab 2 - Fundamental Data Structures/Lab2_Question2.java
+================================================
+/*
+    Context:
+    A circular queue is a data structure that implements the queue abstract data type by connecting the last position in the array back to the first, creating a circular structure.
+
+    Question:
+    Implement the methods public static void enqueue(int e) and public static int dequeue() of a circular queue using an integer array data structure.
+
+    enqueue(int e) should add integer e to the end of the queue.
+    dequeue() should remove the first non-zero integer in the queue and return this value.
+    Assume you have the following global variables:
+
+    int size which stores the number of elements in the queue.
+    int front which points to the index which is at the front of the queue.
+    int rear which points to the index which is at the back of the queue.
+    int capacity which stores the maximum number of elements allowed in the queue, initially set to 10.
+    int[] Q which stores the queue. Assume an empty queue has all elements equal to 0.
+
+    Example:
+    Performing the following commands in order from left to right and top to bottom:
+    enqueue(2); enqueue(7); enqueue(3); dequeue(); enqueue(2); enqueue(7); enqueue(1); enqueue(2);
+    enqueue(6); enqueue(3); dequeue(); dequeue(); enqueue(1); enqueue(1); enqueue(1); enqueue(7);
+    would return the following array
+    1	1	7	2	7	1	2	6	3	1
+*/
+
+public class Lab2_Question2 {
+    public static int dequeue(){
+
+    }
+
+    public static void enqueue(int e){
+        
+    }
+    public static void main(String[] args) {
+        
+    }
+
+}
+
+
+
+================================================
+FILE: CS2603/Lab 2 - Fundamental Data Structures/Lab2_Question3.java
+================================================
+import java.util.LinkedList;
+
+/*
+    Context:
+    In Java, the LinkedList stores elements as nodes. Each node contains a link to the next node as well as the previous node. They are implemented as doubly linked lists.
+
+    Question:
+    Write a method public static LinkedList<Object> swap(LinkedList<Object> l, int i, int j) that swaps the values at index positions i and j in a given LinkedList l.*
+
+    Example:
+    Given that l contains the elements 0,6,3,7,2,8 in this order, swap(l, 0, 3) would return a linked list containing 7,6,3,0,2,8.
+*/
+
+public class Lab2_Question3 {
+    public static LinkedList<Object> swap(LinkedList<Object> l, int i, int j) {
+        return null;
+    }
+
+    public static void main(String[] args) {
+        
+    }
+}
+
+
+
+================================================
+FILE: CS2603/Lab 2 - Fundamental Data Structures/Lab2_Question4.java
+================================================
+/*
+    Context:
+    In Java, a HashMap stores items as (key,value) pairs, where each key maps to a specific value. Every key in a HashMap is unique. An anagram is a word or phrase that can be formed by rearranging the letters of another e.g. dessert is an anagram of stressed.
+
+    Question:
+    Write a method public static boolean anagram(String x, String y) that returns true or false depending on whether the given string x is an anagram of y. Use a HashMap to compute this.*
+
+    Example:
+    For example anagram("heart, earth") would return true.
+    For example anagram("big, bug") would return false.
+*/
+
+public class Lab2_Question4 {
+    public static boolean anagram(String x, String y){
+
+    }
+    public static void main(String[] args) {
+        
+    }
+}
+
+
+
+================================================
+FILE: CS2603/Lab 3 - Graphs and Trees/Lab3_Question1.java
+================================================
+/*
+    Context:
+    An undirected graph can be represented by an adjacency matrix with rows and columns labelled by the graph's vertices. A value of 1 at position (𝑖,𝑗) indicates an edge exists between vertex 𝑖 and vertex 𝑗, while 0 indicates that there is no edge.
+    The graph below is represented by the adjaceny matrix to its right.
+
+    Question:
+    Write a method public static boolean valid_graph(int[][] matrix) that returns true or false depending on whether the given adjacency matrix, represented by a 2D array, is a valid representation of an undirected graph.
+
+    Example:
+    For example given
+    int[][] matrixA = new int[][]{{0,1,0,1,1}{1,0,1,0,0}{0,1,0,1,0}{1,0,1,0,0}{1,0,0,0,0}}
+    valid_graph(matrixA) would return true.
+
+    For example given
+    int[][] matrixB = new int[][]{{0,1,0,1,1}{1,0,1,0,0}{0,1,0,1,0}{1,0,1,0,0}{0,0,0,0,0}}
+    valid_graph(matrixB) would return false.
+*/
+
+public class Lab3_Question1 {
+    public static boolean valid_graph(int[][] matrix){
+
+    }
+    public static void main(String[] args) {
+        
+    }
+}
+
+
+
+================================================
+FILE: CS2603/Lab 3 - Graphs and Trees/Lab3_Question2.java
+================================================
+/*
+    Context:
+    A binary tree is a tree data structure in which each node has at most two children, referred to as the left child and the right child. All the nodes in the tree can be traversed using a preorder traversal, that follows a root-left-right order.  In the given binary tree below, the correct preorder traversal would be 𝐴,𝐵,𝐷,𝐺,𝐻,𝐸,𝐶,𝐹.
+
+    Question:
+    Write a method public static void preorder(Node node) that prints the preorder traversal of a given tree with the root node. 
+    A tree strucure has already been internally implemented, consisting of a class Node. You may make use of the attributes node.left and node.right where node is of type Node. node.data will return the data at the current node.
+
+    Example:
+    Given the following implementation of a binary tree:
+
+    tree.root = new Node(1);
+    tree.root.left = new Node(2);
+    tree.root.right = new Node(3);
+    tree.root.left.left = new Node(4);
+    tree.root.left.right = new Node(5);
+    tree.root.right.right = new Node(6);
+
+    preorder(tree.root) would print 1 2 4 5 3 6
+*/
+
+public class Lab3_Question2 {
+    static class Node {
+        int data;
+        Node left, right;
+
+        Node(int data) {
+            this.data = data;
+        }
+    }
+
+    public static void preorder(Node node) {
+
+    }
+
+    public static void main(String[] args) {
+        
+    }
+}
+
+
+
+================================================
+FILE: CS2603/Lab 3 - Graphs and Trees/Lab3_Question3.java
+================================================
+/*
+    Context:
+    A binary tree is a tree data structure in which each node has at most two children, referred to as the left child and the right child. All the nodes in the tree can be traversed using an inorder traversal, that follows a left-root-right order.  In the given binary tree below, the correct inorder traversal would be 𝐺,𝐷,𝐻,𝐵,𝐸,𝐴,𝐶,𝐹.
+
+    Question:
+    Write a method public static void inorder(Node node) that prints the inorder traversal of a given tree with the root node. 
+
+    A tree strucure has already been internally implemented, consisting of a class Node. You may make use of the attributes node.left and node.right where node is of type Node. node.data will return the data at the current node.
+
+    Example:
+    Given the following implementation of a binary tree:
+
+    tree.root = new Node(1);
+    tree.root.left = new Node(2);
+    tree.root.right = new Node(3);
+    tree.root.left.left = new Node(4);
+    tree.root.left.right = new Node(5);
+    tree.root.right.right = new Node(6);
+
+    inorder(tree.root) would print 4 2 5 1 3 6
+*/
+public class Lab3_Question3 {
+    static class Node {
+        int data;
+        Node left, right;
+
+        Node(int data) {
+            this.data = data;
+        }
+    }
+
+    public static void inorder(Node node) {
+
+    }
+
+    public static void main(String[] args) {
+        
+    }
+}
+
+
+
+================================================
+FILE: CS2603/Lab 3 - Graphs and Trees/Lab3_Question4.java
+================================================
+/*
+    Context:
+    A binary tree is a tree data structure in which each node has at most two children, referred to as the left child and the right child. All the nodes in the tree can be traversed using a postorder traversal, that follows a left-right-root order.  In the given binary tree below, the correct postoder traversal would be 𝐺,𝐻,𝐷,𝐸,𝐵,𝐹,𝐶,𝐴.
+
+    Question:
+    Write a method public static void postorder(Node node) that prints the postorder traversal of a given tree with the root node. 
+
+    A tree strucure has already been internally implemented, consisting of a class Node. You may make use of the attributes node.left and node.right where node is of type Node. node.data will return the data at the current node.
+
+    Example:
+    Given the following implementation of a binary tree:
+
+    tree.root = new Node(1);
+    tree.root.left = new Node(2);
+    tree.root.right = new Node(3);
+    tree.root.left.left = new Node(4);
+    tree.root.left.right = new Node(5);
+    tree.root.right.right = new Node(6);
+
+    postorder(tree.root) would print 4 5 2 6 3 1
+*/
+public class Lab3_Question4 {
+    static class Node {
+        int data;
+        Node left, right;
+
+        Node(int data) {
+            this.data = data;
+        }
+    }
+
+    public static void postorder(Node node) {
+
+    }
+
+    public static void main(String[] args) {
+        
+    }
+}
+
+
+
+================================================
+FILE: CS2603/Lab 4 - Priority Queues and Heaps/Lab4_Question1.java
+================================================
+/* 
+    Context:
+    In Java, a PriorityQueue is a queue data structure that orders elements according to their natural ordering or by a specified Comparator. Internally, it uses a binary heap to ensure efficient priority-based access.
+
+    Question:
+    Use a priority queue to implement a method public static int[] kfreq(int k, int[] arr) that returns the k most frequently occurring numbers in the list arr.*
+
+    Example:
+    For example 
+    int[] arr = new int[]{1, 3, 4, 3, 4, 7, 2, 4, 3}
+    kfreq(2, arr) would return {3, 4}.
+*/
+public class Lab4_Question1 {
+    public static int[] kfreq(int k, int[] arr){
+
+    }
+    public static void main(String[] args) {
+        
+    }
+}
+
+
+
+================================================
+FILE: CS2603/Lab 4 - Priority Queues and Heaps/Lab4_Question2.java
+================================================
+/*
+    Context:
+    A min heap is a binary tree that stores entries as nodes and satisfies two properties:
+    For every position 𝑝 other than the root, the key stored at 𝑝 is greater than or equal to the key stored at 𝑝’s parent.
+    A heap is a complete binary tree. All nodes within the tree have exactly two childen, apart from the parent of the leaves which may have less.
+
+    Question:
+    Complete the class MinHeap by writing the the following methods:
+    upHeap(i) which makes sure property 1 above is always observed when inserting a node.
+    downHeap(i) which makes sure property 1 above is always observed when removing a node.
+    insert(k,v) which inserts a node into the min heap with key k and value v.
+    removeMin() which removes the minimum value from the min heap.
+    All other methods have been provided for you. Assume the capacity of the heap will never be exceeded.
+
+    Example:
+    Given a MinHeap h
+    h.insert(5, 'D') would insert node (5,𝐷) into h. After insertion, upHeap(i) would need to be carried out, where i is the index position of node (5,𝐷) in h (right-most leaf, last element in array heap).
+    h.removeMin() would remove node (5,𝐷) from h. During the removal, the root would need to be swapped with the right-most leaf. downHeap(i) would need to be carried out, where i is the index position of the node with the smallest value k in h (now stored at the root, first element in array heap).
+*/
+public class Lab4_Question2 {
+    public static class MinHeap {
+        public E[] heap;
+        private int size;
+        private static final int DEFAULT_CAPACITY = 16;
+
+        public static class E {
+            int k;
+            char v;
+
+            E(int k, char value) {
+                this.k = k;
+                this.v = value;
+            }
+        }
+
+        public MinHeap() {
+            heap = new E[DEFAULT_CAPACITY];
+            size = 0;
+        }
+
+        public void insert(int k, char v) {
+
+        }
+
+        public E removeMin() {
+            return null;
+        }
+
+        private void upHeap(int i) {
+
+        }
+
+        private void downHeap(int i) {
+
+        }
+
+        private void swap(int i, int j) {
+            E tmp = heap[i];
+            heap[i] = heap[j];
+            heap[j] = tmp;
+        }
+    }
+
+    public static void main(String[] args) {
+        
+    }
+}
+
+
+
+================================================
+FILE: CS2603/Lab 5 - Sorting Alogrithms I/Lab5_Question1.java
+================================================
+/*
+    Context:
+    The selection sort algorithm is a sorting algorithm that has two phases:
+        1. Insert all the elements into a priority queue using an unsorted list.
+        2. Repeatedly remove the minimum element from the priority queue until it is empty.
+    
+    Although inefficient in terms of time for large data sets, selection sort can be implemented in-place with an array. This allows no additional data structures to be used in the computation and so requires no additional memory.
+
+    Question:
+    Write a method public static void selection_sort (int [] list) that implements the in-place selection sort algorithm on a given list of integers list.
+
+    Example:
+    int [] list = {7,2,26,34,3}
+    selection_sort (list) would return {2, 3, 7, 26, 34)
+*/
+public class Lab5_Question1 {
+    public static void selection_sort(int[] list) {
+
+    }
+    public static void main(String[] args) {
+    }
+}
+
+
+
+================================================
+FILE: CS2603/Lab 5 - Sorting Alogrithms I/Lab5_Question2.java
+================================================
+/*
+    Context:
+    The insertion sort algorithm is a sorting algorithm that has two phases:
+        1. Insert all the elements into a priority queue using an sorted list.
+        2. Repeatedly remove the minimum element from the priority queue until it is empty.
+    
+    Although inefficient in terms of time for large data sets, insertion sort can be implemented in-place with an array. This allows no additional data structures to be used in the computation and so requires no additional memory.
+
+    Question:
+    Write a method public static void insertion_sort(int[] list) that implements the in-place insertion sort algorithm on a given integer array list.
+
+    Example:
+    int [] list = {7,2,26,34,3}ą
+    insertion_sort (list) would return (2, 3, 7, 26, 34}
+*/
+
+public class Lab5_Question2 {
+
+    public static void insertion_sort(int[] list) {
+
+    }
+    public static void main(String[] args) {
+        
+    }
+}
+
+
+================================================
+FILE: CS2603/Lab 5 - Sorting Alogrithms I/Lab5_Question3.java
+================================================
+/*
+    Context:
+    Bubble sort works by iteratively comparing adjacent elements from left to right and swapping them so that they are positioned in increasing order. It restarts once it reaches the end of the list and stop once no more swaps can be made. Bubble sort is an in-place sorting algorithm as requires no additional data structures.
+
+    Question:
+    Write a method public static void bubble_sort(intI] list) that implements the bubble sort algorithm on a given integer array list.
+
+    Example:
+    int [] list = {7,2,26,34,3}
+    bubble_sort (list) would return (2, 3, 7,26, 34}
+*/
+public class Lab5_Question3 {
+    public static void bubble_sort(int[] list) {
+
+    }
+
+    public static void main(String[] args) {
+
+    }
+}
+
+
+================================================
+FILE: CS2603/Lab 6 - Sorting Alogrithms II/Lab6_Question1.java
+================================================
+/*
+    Context:
+    Merge sort is a sorting algorithm with the following main steps:
+    1. Divide: If the input sequence S of size n has zero or one element, return S, otherwise remove all the elements from S and put them into two sequences, S₁ and S₂, where |S₁| = ⌊n/2⌋ and |S₂| = ⌈n/2⌉.
+    2. Conquer: Recursively sort sequences S₁ and S₂.
+    3. Combine: Put the elements back into S by merging the sorted sequences S₁ and S₂ into a sorted sequence.
+
+    Question:
+    Write a method public static void merge_sort(int list[], int l, int r) that implements the merge sort algorithm on a given integer array list, where initially l = 0 and r = |arr| − 1.
+
+    Example:
+    int[] list = {7,2,26,34,3}
+    merge_sort(list, 0, list.length-1) would return {2, 3, 7, 26, 34}
+*/
+public class Lab6_Question1 {
+    public static void merge_sort(int list[], int l, int r) {
+
+    }
+    public static void main(String[] args) {
+        
+    }  
+}
+
+
+================================================
+FILE: CS2603/Lab 6 - Sorting Alogrithms II/Lab6_Question2.java
+================================================
+/*
+    Context:
+    Quick sort is a sorting algorithm with the following main steps:
+    1. Divide: If the input sequence S of size n has zero or one element, return S, otherwise select a specific element x from S, the pivot. In common practice, we choose the pivot x to be the last element in S.
+       Remove all the elements from S and put them into three sequences:
+       - L, storing the elements in S less than x.
+       - E, storing the elements in S equal to x.
+       - G, storing the elements in S greater than x.
+    2. Conquer: Recursively sort sequences L and G.
+    3. Combine: Put back the elements into S in order by first inserting the elements of L, then those of E, and finally those of G.
+
+    Question:
+    Write a method public static void quick_sort(int list[], int low, int high) that implements the quick sort algorithm on a given integer array list, using the last element in the array as the pivot, where initially low = 0 and high = |arr| − 1.
+
+    Example:
+    int[] list = {7,2,26,34,3}
+    quick_sort(list, 0, list.length-1) would return {2, 3, 7, 26, 34}.
+*/
+public class Lab6_Question2 {
+    public static void quick_sort(int list[], int low, int high) {
+
+    }
+    public static void main(String[] args) {
+        
+    }  
+}
+
+
+
+================================================
+FILE: CS2603/Lab 6 - Sorting Alogrithms II/Lab6_Question3.java
+================================================
+/*
+    Context:
+    Radix sort sorts integers by grouping the elements by individual digits that share the same significant position (radix). It sorts the figures using buckets. The following steps are carried out for radix sorting:
+    1. Pad the digits so that all integers have the same number of significant figures.
+    2. Start from the least significant digit and bucket sort the digits, moving up to the most significant digit and doing the same. Note that only a bucket of length 10 needs to be used every time.
+
+    Question:
+    Write a method public static void radix_sort(int list[]) that implements the radix sort algorithm on a given integer array list.
+
+    Example:
+    int[] list = {7,2,26,100,34,3}
+    radix_sort(list) would return {2, 3, 7, 26, 34, 100}.
+*/
+public class Lab6_Question3 {
+    public static void radix_sort(int list[]) {
+
+    }
+    public static void main(String[] args) {
+        
+    }  
+}
+
+
+
+================================================
+FILE: CS2603/Lab 7 - Graph Algorithms/Lab7_Question1.java
+================================================
+import java.util.*;
+/*
+    Context:
+    Depth first search (DFS) traverses a graph starting from a given vertex s. It explores all the vertices on the path from s until there are no more vertices to explore. It then backtracks to the last decision point and continues down the new path. This is done until there are no more vertices to backtrack to.
+
+    Question:
+    Write a method public static void dfs(int[][] graph, int s) that computes the dfs algorithm for a given input graph graph, represented by an adjacency matrix, starting the search at vertex s.*
+
+    Example:
+    int[][] graph = new int[][]{{0,1,1,0,0},{1,0,1,1,0},{1,1,0,0,1},{0,1,0,0,1},{0,0,1,1,1}}
+    dfs(graph, 0) would return {0, 1, 2, 4, 3}.
+
+    *All java.util libraries have been imported for you already.
+*/
+public class Lab7_Question1 {
+    public static void dfs(int[][] graph, int s) {
+
+    }
+    public static void main(String[] args) {
+        
+    }  
+}
+
+
+
+================================================
+FILE: CS2603/Lab 7 - Graph Algorithms/Lab7_Question2.java
+================================================
+import java.util.*;
+/*
+    Context:
+    Breadth first search (BFS) traverses a graph starting from a given vertex s. It explores all the neighbours of s then moves onto the next level. This is done until no more vertices are reachable on the path from s.
+
+    Question:
+    Write a method public static void bfs(int[][] graph, int s) that computes the bfs algorithm for a given input graph graph, starting the search at vertex s.*
+
+    Example:
+    int[][] graph = new int[][]{{0,1,1,0,0},{1,0,1,1,0},{1,1,0,0,1},{0,1,0,0,1},{0,0,1,1,1}}
+    bfs(graph, 0) would return {0, 1, 2, 3, 4}.
+
+    *All java.util libraries have been imported for you already.
+*/
+public class Lab7_Question2 {
+    public static void bfs(int[][] graph, int s) {
+
+    }
+    public static void main(String[] args) {
+        
+    }  
+}
+
+
+
+================================================
+FILE: CS2603/Lab 7 - Graph Algorithms/Lab7_Question3.java
+================================================
+import java.util.*;
+/*
+    Context:
+    Dijkstra's algorithm is used to find the shortest path between a given vertex s and every other vertex in a weighted graph in which all the weights are positive. The main idea is to perform a “weighted" breadth first search starting at s and using a priority queue Q.
+
+    Question:
+    Write a method public static int[] dijkstra(int[][] graph, PriorityQueue<Node> pq, int start) that computes Dijkstra's algorithm for a given input graph graph, represented by an adjacency matrix. Use a priority queue pq to solve this, given a starting vertex start. Assume the graph is connected.*
+
+    Example:
+    int[][] graph = {{0,2,5,0,0},{2,0,0,3,0},{5,0,0,0,4}, {0,3,0,0,1}, {0,0,4,1,0}}
+    dijkstra(graph, pq, 0) would return {0, 2, 5, 5, 6}.
+
+    *All java.util libraries have been imported for you already.
+*/
+public class Lab7_Question3 {
+    static class Node implements Comparable<Node> {
+        int node;
+        int cost;
+
+        Node(int node, int cost) {
+            this.node = node;
+            this.cost = cost;
+        }
+
+        @Override
+        public int compareTo(Node other) {
+            return Integer.compare(this.cost, other.cost);
+        }
+    }
+
+    public static int[] dijkstra(int[][] graph, PriorityQueue<Node> pq, int start) {
+        return null;
+    }
+
+    public static void main(String[] args) {
+        
+    }  
+}
+
+
