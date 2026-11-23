@@ -1,4 +1,8 @@
 import java.lang.Math;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+
 /*
     Question:
     (1) Implement the method private static long algA(long n) above and check your answer below.
@@ -10,20 +14,36 @@ import java.lang.Math;
 */
 
 public class Lab1_Question1 {
-    private static long algA(long n){
-        int x = 0;
-        long startTime = System.nanoTime();
-        for (int i = 2; i <= n; i += 2) {
+    private static long algA(long n) {
+        long x = 0;
+        for (long i = 2; i <= n; i += 2) {
             x += i;
         }
-        long endTime = System.nanoTime();
-        System.out.println("Time: " + (endTime - startTime) + " ns");
         return x;
     }
     public static void main(String[] args) {
-        for (double i = 3; i < 10; ++i) {
-            long n = (long) Math.pow(10, i);
-            System.out.println("algA result: " + algA(n));
+        String filename = "Lab 1 - Algorithm Complexity/algA_results.csv";
+
+        try(BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
+            writer.write("n,elapsed");
+            writer.newLine();
+
+            for (int i = 3; i <= 9; ++i) {
+                long n = (long) Math.pow(10, i);
+
+                long startTime = System.nanoTime();
+                long result = algA(n);
+                long endTime = System.nanoTime();
+
+                long elapsed = endTime - startTime;
+
+                writer.write(n + "," + elapsed);
+                writer.newLine();
+
+                System.out.println("n = " + n + ", result = " + result + ", time = " + elapsed + "ns");
+            }
+        } catch (IOException e) {
+            System.err.println("Error writing to file: " + e.getMessage());
         }
     }
 }

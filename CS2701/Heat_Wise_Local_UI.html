@@ -1,0 +1,1211 @@
+<title>Heat Wise Local</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Familjen+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500&family=Noto+Sans+Bengali:wght@400;700&display=swap">
+<style>
+/* Layout: app shell — fixed navy sidebar + scrolling workspace; the thermal heat map is the one bold element, everything else stays calm */
+:root{
+  --bg:#EEF1F5; --surface:#FFFFFF; --surface-2:#F6F8FB; --ink:#0F1B2D; --muted:#566275; --line:#DCE2EA;
+  --navy:#0D1828; --navy-ink:#E6ECF4; --navy-muted:#8E9BB0; --navy-line:#22324A; --navy-hi:#1B2A42;
+  --cool:#0C7A83; --cool-soft:#DDF1F2; --cool-ink:#06464C;
+  --h1:#FFE08A; --h2:#FFB347; --h3:#F2702E; --h4:#B3261E; --on-heat:#1A1206; --on-h4:#FFFFFF;
+  --alert-bg:#FFE9D6; --alert-ink:#7A2E08;
+  --focus:#2F6FEB;
+  --display:"Familjen Grotesk", "Arial Narrow", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Noto Sans Bengali", "Segoe UI", system-ui, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r-lg:20px; --r-md:14px; --r-sm:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0A111D; --surface:#111B2B; --surface-2:#162236; --ink:#E7EDF5; --muted:#9DA9BB; --line:#24324A;
+  --navy:#070D18; --navy-hi:#15233A; --navy-line:#1C2A40;
+  --cool:#4FC3CB; --cool-soft:#0F3236; --cool-ink:#BDEFF2;
+  --alert-bg:#3A1F10; --alert-ink:#FFD2B0; --focus:#7FA8FF; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0A111D; --surface:#111B2B; --surface-2:#162236; --ink:#E7EDF5; --muted:#9DA9BB; --line:#24324A;
+  --navy:#070D18; --navy-hi:#15233A; --navy-line:#1C2A40;
+  --cool:#4FC3CB; --cool-soft:#0F3236; --cool-ink:#BDEFF2;
+  --alert-bg:#3A1F10; --alert-ink:#FFD2B0; --focus:#7FA8FF; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5}
+h1,h2,h3{font-family:var(--display);font-weight:600;letter-spacing:-.01em;margin:0;text-wrap:balance}
+p{margin:0}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.eyebrow{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:700}
+
+/* shell */
+.app{display:flex;min-height:100%}
+.side{position:sticky;top:0;height:100vh;width:252px;flex:none;background:var(--navy);color:var(--navy-ink);display:flex;flex-direction:column;gap:24px;padding-block:22px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:16px;overflow-y:auto}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 6px}
+.brand-mark{width:38px;height:38px;border-radius:11px;background:conic-gradient(from 200deg,#3b1c6e,#9c1f6e,#e2532d,#f9a03f,#ffe9a3,#3b1c6e);display:grid;place-items:center}
+.brand-mark span{width:16px;height:16px;border-radius:50%;background:var(--navy)}
+.brand b{font-family:var(--display);font-size:19px;font-weight:700;letter-spacing:-.01em}
+.nav{display:flex;flex-direction:column;gap:4px}
+.nav button{all:unset;cursor:pointer;display:flex;align-items:center;gap:12px;min-height:46px;padding:0 12px;border-radius:12px;color:var(--navy-muted);font-weight:700}
+.nav button:hover{background:var(--navy-hi);color:var(--navy-ink)}
+.nav button[aria-current="page"]{background:var(--navy-hi);color:var(--navy-ink);box-shadow:inset 3px 0 0 #f9a03f}
+.nav button:focus-visible{outline:3px solid var(--focus)}
+.nav svg{width:20px;height:20px;flex:none}
+.side-h{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--navy-muted);font-weight:700;padding:0 6px}
+.places{display:flex;flex-direction:column;gap:6px}
+.place{display:flex;align-items:center;gap:10px;padding:8px 8px;border-radius:10px}
+.place i{width:10px;height:28px;border-radius:4px;flex:none}
+.place div{flex:1;display:flex;flex-direction:column;line-height:1.25}
+.place small{color:var(--navy-muted);font-size:13px}
+.place .num{font-size:14px}
+.sos{margin-top:auto;border:1px solid var(--navy-line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.sos p{font-size:13px;color:var(--navy-muted)}
+.sos-row{display:flex;gap:8px}
+.sos-row span{flex:1;border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;line-height:1.2}
+.sos-row b{font-family:var(--mono);font-size:20px}
+.sos-row small{font-size:12px}
+.s999{background:var(--h4);color:var(--on-h4)}
+.s111{background:var(--navy-hi);color:var(--navy-ink)}
+
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top-in{max-width:1240px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding-block:14px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.search{flex:1 1 280px;display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:0 14px;min-height:46px}
+.search input{border:0;background:transparent;outline:0;flex:1;min-width:0;font-size:16px}
+.search svg{width:18px;height:18px;color:var(--muted);flex:none}
+.pill-alert{display:flex;align-items:center;gap:8px;background:var(--alert-bg);color:var(--alert-ink);border-radius:999px;padding:8px 14px;font-weight:700;font-size:14px}
+.pill-alert i{width:9px;height:9px;border-radius:50%;background:var(--h3);box-shadow:0 0 0 4px color-mix(in srgb,var(--h3) 30%,transparent)}
+.icon-btn{width:46px;height:46px;border-radius:12px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;cursor:pointer;font-weight:700}
+.avatar{width:46px;height:46px;border-radius:50%;background:var(--cool-soft);color:var(--cool-ink);display:grid;place-items:center;font-weight:700}
+
+.view{max-width:1240px;width:100%;margin:0 auto;display:flex;flex-direction:column;gap:22px;padding-block:26px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px}
+.head h1{font-size:clamp(30px,3.4vw,42px);line-height:1.05}
+.head p{color:var(--muted);max-width:60ch}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg)}
+.pad{padding:22px}
+.btn{display:inline-flex;align-items:center;gap:8px;min-height:46px;padding:0 18px;border-radius:12px;border:1px solid transparent;font-weight:700;cursor:pointer;text-decoration:none}
+.btn-dark{background:var(--ink);color:var(--surface)}
+.btn-cool{background:var(--cool-soft);color:var(--cool-ink)}
+.btn-line{background:var(--surface);border-color:var(--line);color:var(--ink)}
+
+/* level chips */
+.lvl{display:inline-flex;align-items:center;gap:6px;border-radius:8px;padding:2px 9px;font-weight:700;font-size:13px;color:var(--on-heat)}
+.L1{background:var(--h1)}.L2{background:var(--h2)}.L3{background:var(--h3)}.L4{background:var(--h4);color:var(--on-h4)}
+
+/* TODAY */
+.today{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:22px}
+.thermal-card{position:relative;overflow:hidden;border-radius:var(--r-lg);background:#14213d;min-height:420px}
+.thermal-card canvas,.map-stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.tc-over{position:absolute;inset:0;padding:22px;display:flex;flex-direction:column;justify-content:space-between;color:#fff;pointer-events:none}
+.tc-over>*{pointer-events:auto}
+.glass{background:rgba(9,14,26,.62);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.14);border-radius:16px;color:#F3F6FB}
+.tc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.tc-risk{padding:16px 18px;display:flex;flex-direction:column;gap:2px;max-width:330px}
+.tc-risk .big{font-family:var(--display);font-size:56px;font-weight:700;line-height:1;letter-spacing:-.02em}
+.tc-risk .sub{font-size:17px}
+.tc-risk .eyebrow{color:#BAC6D8}
+.tc-bottom{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.tc-msg{padding:14px 16px;max-width:420px;font-size:16px}
+.you{position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;border:4px solid #0D1828;box-shadow:0 0 0 6px rgba(255,255,255,.35);transform:translate(-50%,-50%)}
+.you-l{position:absolute;transform:translate(14px,-50%);font-weight:700;font-size:13px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.8)}
+.thermal-scale{display:flex;flex-direction:column;gap:6px;padding:10px 12px;font-size:12px}
+.thermal-scale .bar{width:180px;height:10px;border-radius:5px;background:linear-gradient(90deg,#14213d,#3b1c6e,#9c1f6e,#e2532d,#f9a03f,#ffe9a3)}
+.thermal-scale .ends{display:flex;justify-content:space-between;color:#C9D3E2}
+
+.stack{display:flex;flex-direction:column;gap:22px;min-width:0}
+.gauge-card{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.gauge{width:190px;max-width:100%;flex:none}
+.gauge text{font-family:var(--body);fill:var(--muted);font-size:11px}
+.gauge-info{flex:1 1 180px;display:flex;flex-direction:column;gap:6px}
+.gauge-info h2{font-size:30px}
+.gauge-info p{color:var(--muted)}
+.chart-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.chart-head h2{font-size:20px}
+.chart svg{width:100%;height:auto;display:block}
+.chart .grid{stroke:var(--line);stroke-width:1}
+.chart .axis{fill:var(--muted);font-size:11px;font-family:var(--mono)}
+.chart .lab{fill:var(--ink);font-size:12px;font-family:var(--mono);font-weight:500}
+.chart .line{fill:none;stroke:var(--ink);stroke-width:2.5}
+.chart .now{stroke:var(--ink);stroke-dasharray:3 4}
+
+.row3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}
+.tip{display:flex;flex-direction:column;gap:10px}
+.tip .ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center}
+.tip h3{font-size:19px}
+.tip p{color:var(--muted)}
+.tip .when{font-family:var(--mono);font-size:13px;color:var(--ink);background:var(--surface-2);border-radius:8px;padding:3px 8px;align-self:flex-start}
+
+/* MAP */
+.map-wrap{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:22px;align-items:start}
+.map-stage{position:relative;border-radius:var(--r-lg);overflow:hidden;background:#14213d;aspect-ratio:16/11;max-width:100%;cursor:crosshair}
+.map-label{position:absolute;transform:translate(-50%,-50%);font-weight:700;font-size:13px;line-height:1.2;text-align:center;color:#fff;background:rgba(13,24,40,.78);border-radius:8px;padding:3px 8px;pointer-events:none;white-space:nowrap}
+.map-label.sel{background:#fff;color:#0D1828;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.scrub{position:absolute;left:16px;right:16px;bottom:16px;padding:12px 14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.scrub button{width:44px;height:44px;border-radius:50%;border:0;background:#fff;color:#0D1828;display:grid;place-items:center;cursor:pointer;flex:none}
+.scrub .t{font-family:var(--mono);font-size:22px;min-width:74px}
+.scrub input{flex:1 1 200px;accent-color:#f9a03f;height:28px}
+.layers{position:absolute;top:16px;left:16px;padding:6px;display:flex;gap:4px;flex-wrap:wrap}
+.layers button{border:0;background:transparent;color:#DDE5F0;border-radius:10px;min-height:38px;padding:0 12px;font-weight:700;cursor:pointer}
+.layers button[aria-pressed="true"]{background:#fff;color:#0D1828}
+.legend4{position:absolute;top:16px;right:16px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;font-size:12px}
+.legend4 div{display:flex;align-items:center;gap:8px}
+.legend4 i{width:14px;height:14px;border-radius:4px}
+.area-card{display:flex;flex-direction:column;gap:14px}
+.area-top{display:flex;gap:14px;align-items:center}
+.area-sw{width:56px;height:56px;border-radius:16px;flex:none}
+.area-top h2{font-size:24px;line-height:1.15}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.stat{background:var(--surface-2);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column}
+.stat b{font-family:var(--mono);font-size:22px;font-weight:500}
+.stat span{font-size:13px;color:var(--muted)}
+.advice{background:var(--surface-2);border-radius:12px;padding:14px;font-size:16px}
+.rank{display:flex;flex-direction:column}
+.rank button{all:unset;cursor:pointer;display:flex;align-items:center;gap:10px;padding:9px 6px;border-top:1px solid var(--line);border-radius:6px}
+.rank button:hover{background:var(--surface-2)}
+.rank button:focus-visible{outline:3px solid var(--focus)}
+.rank .bar{flex:1;height:8px;border-radius:4px;background:var(--surface-2);overflow:hidden}
+.rank .bar i{display:block;height:100%;border-radius:4px}
+.rank .nm{width:130px;flex:none}
+.rank .num{width:40px;text-align:right}
+
+/* COOL */
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-height:42px;padding:0 15px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-weight:700;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.cool-wrap{display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:22px;align-items:start}
+.results{display:flex;flex-direction:column;gap:10px}
+.res{all:unset;cursor:pointer;display:flex;gap:14px;padding:16px;border-radius:16px;background:var(--surface);border:1px solid var(--line)}
+.res[aria-pressed="true"]{border-color:var(--cool);box-shadow:inset 0 0 0 1px var(--cool)}
+.res:focus-visible{outline:3px solid var(--focus)}
+.res .n{width:42px;height:42px;border-radius:12px;background:var(--cool-soft);color:var(--cool-ink);display:grid;place-items:center;font-family:var(--mono);flex:none}
+.res .body{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.res .t1{display:flex;justify-content:space-between;gap:8px}
+.res .t1 b{font-size:17px}
+.res .meta{font-size:14px;color:var(--muted)}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tags span{font-size:13px;background:var(--surface-2);border-radius:7px;padding:1px 8px}
+.report{font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px}
+.report i{width:8px;height:8px;border-radius:50%}
+.cool-map{position:relative;border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--line);background:var(--surface-2)}
+.cool-map svg{display:block;width:100%;height:auto}
+.cool-map .street{stroke:var(--surface);stroke-width:12;fill:none;stroke-linecap:round}
+.cool-map .blk{fill:var(--line);opacity:.55}
+.cool-map .park{fill:var(--cool-soft)}
+.cool-map .water{fill:color-mix(in srgb,var(--cool) 25%,var(--surface-2))}
+.cool-map .pin circle{fill:var(--cool);stroke:var(--surface);stroke-width:3}
+.cool-map .pin text{fill:#fff;font-family:var(--mono);font-size:13px;text-anchor:middle}
+.cool-map .pin.on circle{fill:var(--ink)}
+.cool-map .pin.on text{fill:var(--surface)}
+.cool-map .pin.off{opacity:.25}
+.cool-map .me{fill:var(--ink)}
+.detail{display:flex;flex-direction:column;gap:14px}
+.detail-top{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start}
+.detail h2{font-size:26px}
+.fac{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.fac span{display:flex;align-items:center;gap:8px;background:var(--surface-2);border-radius:10px;padding:8px 10px;font-size:15px}
+.fac svg{width:16px;height:16px;color:var(--cool);flex:none}
+.rep-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+
+/* PLAN */
+.plan-wrap{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:22px;align-items:start}
+.who{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.who button{all:unset;cursor:pointer;display:flex;flex-direction:column;gap:2px;padding:12px;border-radius:14px;border:1px solid var(--line);background:var(--surface);min-height:44px}
+.who button b{font-size:15px}
+.who button small{font-size:13px;color:var(--muted);line-height:1.3}
+.who button[aria-pressed="true"]{border-color:var(--cool);background:var(--cool-soft)}
+.who button[aria-pressed="true"] small{color:var(--cool-ink)}
+.who button:focus-visible{outline:3px solid var(--focus)}
+.seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));background:var(--surface-2);border-radius:12px;padding:4px;gap:4px}
+.seg button{border:0;background:transparent;border-radius:9px;min-height:40px;font-weight:700;cursor:pointer;font-size:14px}
+.seg button[aria-pressed="true"]{background:var(--surface);box-shadow:0 1px 4px rgba(15,27,45,.14)}
+.sw{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px}
+.sw input{appearance:none;width:48px;height:28px;border-radius:999px;background:var(--line);position:relative;cursor:pointer;flex:none;transition:background .2s}
+.sw input::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .2s}
+.sw input:checked{background:var(--cool)}
+.sw input:checked::after{transform:translateX(20px)}
+.timeline{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.tl{display:grid;grid-template-columns:86px 28px minmax(0,1fr);gap:0 14px}
+.tl .time{font-family:var(--mono);font-size:13px;color:var(--muted);padding-top:3px;text-align:right}
+.tl .rail{display:flex;flex-direction:column;align-items:center}
+.tl .dot{width:16px;height:16px;border-radius:50%;border:3px solid var(--surface);box-shadow:0 0 0 2px var(--line);margin-top:4px;flex:none}
+.tl .stem{width:2px;flex:1;background:var(--line);margin:4px 0}
+.tl:last-child .stem{display:none}
+.tl .content{padding-bottom:22px;display:flex;flex-direction:column;gap:8px}
+.tl h3{font-size:18px}
+.todo{display:flex;flex-direction:column;gap:6px}
+.todo div{display:flex;gap:10px;align-items:flex-start;background:var(--surface-2);border-radius:12px;padding:10px 12px}
+.todo div.me{background:var(--cool-soft)}
+.todo div.me small{color:var(--cool-ink)}
+.todo small{display:block;color:var(--muted);font-size:13px}
+.todo svg{width:18px;height:18px;flex:none;margin-top:3px}
+.danger{background:var(--navy);color:var(--navy-ink);border-radius:var(--r-lg);padding:22px;display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between}
+.danger p{color:var(--navy-muted);max-width:52ch}
+.danger .sos-row{flex:0 1 360px}
+.note{font-size:13px;color:var(--muted)}
+
+.tabbar{display:none}
+
+/* new features */
+.tool{display:inline-flex;align-items:center;gap:8px;height:46px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:var(--surface);font-weight:700;cursor:pointer;font-size:14px}
+.tool svg{width:18px;height:18px}
+.tool[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.lang{height:46px;border-radius:12px;border:1px solid var(--line);background:var(--surface);padding:0 10px;font-weight:700;font-size:14px}
+.nav-sep{margin-top:10px}
+.row2{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:22px}
+.week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;margin-top:12px}
+.day{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 4px;border-radius:14px;background:var(--surface-2);text-align:center}
+.day.today{box-shadow:inset 0 0 0 2px var(--ink)}
+.day .dn{font-size:13px;font-weight:700;color:var(--muted)}
+.day .blk{width:100%;max-width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-family:var(--mono);font-size:15px}
+.day small{font-size:12px;color:var(--muted);line-height:1.2}
+.check{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.check label{display:flex;align-items:center;gap:12px;min-height:46px;padding:4px 10px;border-radius:12px;background:var(--surface-2);cursor:pointer}
+.check input{width:22px;height:22px;accent-color:var(--cool);flex:none}
+.check label span{flex:1}
+.check label.done span{text-decoration:line-through;color:var(--muted)}
+.check .rem{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-radius:8px;padding:2px 8px;background:var(--surface);cursor:pointer}
+.check .rem[aria-pressed="true"]{background:var(--cool-soft);color:var(--cool-ink);border-color:var(--cool)}
+.prog{height:8px;border-radius:4px;background:var(--surface-2);overflow:hidden;margin-top:8px}
+.prog i{display:block;height:100%;background:var(--cool);transition:width .3s}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(24px + env(safe-area-inset-bottom,0px));z-index:40;background:var(--ink);color:var(--surface);padding:12px 18px;border-radius:12px;font-weight:700;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+/* simple mode */
+.simple-wrap{display:flex;flex-direction:column;gap:18px;max-width:760px}
+.simple-big{border-radius:28px;padding:32px;display:flex;flex-direction:column;gap:8px;background:var(--h3);color:var(--on-heat)}
+.simple-big .lv{font-family:var(--display);font-size:clamp(64px,10vw,104px);font-weight:700;line-height:.95;letter-spacing:-.03em}
+.simple-big p{font-size:24px;line-height:1.35}
+.simple-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.simple-tile{border-radius:22px;padding:24px;display:flex;flex-direction:column;gap:6px;font-size:20px}
+.simple-tile b{font-family:var(--display);font-size:30px;line-height:1.1}
+/* route */
+.route-card{position:absolute;left:16px;top:70px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;font-size:14px;max-width:290px}
+.route-card .r{display:flex;align-items:center;gap:10px}
+.route-card .rsw{width:26px;height:6px;border-radius:3px;flex:none}
+.route-card b{font-family:var(--mono);font-weight:500}
+/* reviews */
+.reviews{display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--line);padding-top:14px}
+.rev{display:flex;gap:12px;align-items:flex-start}
+.ph{width:92px;height:70px;border-radius:12px;flex:none;position:relative;overflow:hidden}
+.ph svg{position:absolute;right:6px;bottom:6px;width:18px;height:18px;color:#fff}
+.rev .rb{display:flex;flex-direction:column;gap:2px;min-width:0}
+.rev .rb small{color:var(--muted);font-size:13px}
+.rate{display:flex;gap:6px;flex-wrap:wrap}
+.rate span{font-size:12px;font-weight:700;border-radius:7px;padding:1px 8px;background:var(--cool-soft);color:var(--cool-ink)}
+/* home check */
+.q{display:flex;flex-direction:column;gap:6px}
+.q .seg{grid-template-columns:repeat(var(--n,3),minmax(0,1fr))}
+.meter{height:14px;border-radius:7px;background:linear-gradient(90deg,var(--h1),var(--h2),var(--h3),var(--h4));position:relative;margin-top:6px}
+.meter i{position:absolute;top:-6px;width:6px;height:26px;border-radius:3px;background:var(--ink);transform:translateX(-50%);transition:left .3s}
+/* people */
+.people{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
+.person{display:flex;flex-direction:column;gap:14px}
+.p-top{display:flex;align-items:center;gap:14px}
+.p-av{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:18px;flex:none}
+.p-top div{flex:1;display:flex;flex-direction:column;line-height:1.3}
+.p-top small{color:var(--muted)}
+.p-status{display:flex;align-items:center;gap:10px;background:var(--surface-2);border-radius:12px;padding:10px 12px;font-size:15px}
+.p-status i{width:12px;height:36px;border-radius:5px;flex:none}
+.p-done{color:var(--cool-ink);background:var(--cool-soft)}
+/* history + council */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:18px}
+.tile{display:flex;flex-direction:column;gap:4px}
+.tile b{font-family:var(--mono);font-size:32px;font-weight:500;line-height:1.1}
+.tile span{color:var(--muted);font-size:14px}
+.tile em{font-style:normal;font-size:13px;font-weight:700}
+.svgchart svg{width:100%;height:auto;display:block}
+.svgchart .grid{stroke:var(--line)}
+.svgchart .axis{fill:var(--muted);font-size:11px;font-family:var(--mono)}
+.svgchart .lab{fill:var(--ink);font-size:11px;font-family:var(--mono)}
+.tbl-wrap{overflow-x:auto}
+table.tbl{width:100%;border-collapse:collapse;font-size:15px;min-width:560px}
+.tbl th{text-align:left;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:10px 12px;border-bottom:1px solid var(--line)}
+.tbl td{padding:12px;border-bottom:1px solid var(--line)}
+.tbl td.n{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+.tbl th.n{text-align:right}
+.badge-admin{display:inline-flex;align-items:center;gap:6px;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:13px;font-weight:700}
+@media (max-width:1100px){.row2,.simple-row{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:560px){.week{grid-template-columns:repeat(4,minmax(0,1fr))}.top .tool .tl{display:none}}
+
+/* v3: zones legend, notices, tags, account pages */
+.zone-legend{display:flex;flex-direction:column;gap:6px;padding:10px 12px;font-size:12px}
+.zone-legend div{display:flex;gap:10px;flex-wrap:wrap}
+.zone-legend span{display:flex;align-items:center;gap:6px}
+.zone-legend i{width:14px;height:14px;border-radius:4px}
+.notice{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--alert-bg);color:var(--alert-ink);border-radius:14px;padding:10px 14px;font-size:15px}
+.notice svg{width:20px;height:20px;flex:none}
+.notice span{flex:1 1 240px}
+.notice button{min-height:40px;padding:0 14px;border-radius:10px;border:1px solid currentColor;background:transparent;color:inherit;font-weight:700;cursor:pointer}
+.ways{display:flex;flex-direction:column;gap:8px}
+.way{display:flex;gap:12px;align-items:flex-start;background:var(--surface-2);border-radius:12px;padding:12px}
+.way .ic2{width:36px;height:36px;border-radius:10px;background:var(--cool-soft);color:var(--cool-ink);display:grid;place-items:center;flex:none}
+.way .ic2 svg{width:18px;height:18px}
+.way b{display:block}
+.way small{color:var(--muted);font-size:14px}
+.tagsum{display:flex;flex-wrap:wrap;gap:8px}
+.tagsum span{display:flex;align-items:center;gap:8px;background:var(--surface-2);border-radius:10px;padding:6px 10px;font-size:14px}
+.tagsum b{font-family:var(--mono);font-weight:500;color:var(--cool-ink);background:var(--cool-soft);border-radius:6px;padding:0 6px}
+.tagbtns{display:flex;flex-wrap:wrap;gap:8px}
+.tagbtns button{min-height:40px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-weight:700;font-size:14px;cursor:pointer}
+.tagbtns button[aria-pressed="true"]{background:var(--cool);color:#fff;border-color:var(--cool)}
+.empty{border:1px dashed var(--line);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:8px;align-items:flex-start;background:var(--surface)}
+.empty b{font-family:var(--display);font-size:20px;font-weight:600}
+.empty p{color:var(--muted)}
+.auth{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0;border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--line);background:var(--surface)}
+.auth-side{background:var(--navy);color:var(--navy-ink);padding:32px;display:flex;flex-direction:column;gap:16px;justify-content:space-between}
+.auth-side p{color:var(--navy-muted)}
+.auth-side ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px}
+.auth-side li{display:flex;gap:10px;align-items:flex-start}
+.auth-side li svg{width:18px;height:18px;color:#f9a03f;flex:none;margin-top:3px}
+.auth-form{padding:32px;display:flex;flex-direction:column;gap:14px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-weight:700;font-size:15px}
+.field input{min-height:48px;border-radius:12px;border:1px solid var(--line);background:var(--surface-2);padding:0 14px;font-size:16px}
+.field small{color:var(--muted);font-size:13px}
+.datalist{display:flex;flex-direction:column}
+.drow{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:14px 0;border-top:1px solid var(--line)}
+.drow:first-child{border-top:0}
+.drow div{display:flex;flex-direction:column;min-width:0}
+.drow small{color:var(--muted);font-size:14px}
+.confirm{background:var(--alert-bg);color:var(--alert-ink);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.src-tbl td:first-child{font-weight:700}
+@media (max-width:820px){.auth{grid-template-columns:minmax(0,1fr)}}
+
+/* AI assistant */
+.ai-fab{position:fixed;right:max(20px,calc(env(safe-area-inset-right,0px) + 20px));bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:30;display:flex;align-items:center;gap:10px;min-height:54px;padding:0 20px 0 8px;border-radius:999px;border:0;background:var(--navy);color:var(--navy-ink);font-weight:700;cursor:pointer;box-shadow:0 10px 30px rgba(13,24,40,.35)}
+.ai-fab .orb{width:40px;height:40px;border-radius:50%;background:conic-gradient(from 200deg,#3b1c6e,#9c1f6e,#e2532d,#f9a03f,#ffe9a3,#3b1c6e);display:grid;place-items:center}
+.ai-fab .orb svg{width:20px;height:20px;color:#0D1828}
+.ai-panel{position:fixed;right:max(20px,calc(env(safe-area-inset-right,0px) + 20px));bottom:calc(88px + env(safe-area-inset-bottom,0px));z-index:31;width:min(400px,calc(100vw - 32px));height:min(600px,calc(100vh - 140px));display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:22px;box-shadow:0 24px 60px rgba(13,24,40,.28);overflow:hidden}
+.ai-head{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--navy);color:var(--navy-ink)}
+.ai-head .orb{width:36px;height:36px;border-radius:50%;background:conic-gradient(from 200deg,#3b1c6e,#9c1f6e,#e2532d,#f9a03f,#ffe9a3,#3b1c6e);flex:none}
+.ai-head div{flex:1;display:flex;flex-direction:column;line-height:1.25}
+.ai-head small{color:var(--navy-muted);font-size:13px}
+.ai-head button{width:40px;height:40px;border-radius:10px;border:1px solid var(--navy-line);background:transparent;color:var(--navy-ink);cursor:pointer;font-size:20px}
+.ai-log{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:var(--surface-2)}
+.msg{max-width:86%;padding:10px 14px;border-radius:16px;font-size:15px;line-height:1.45}
+.msg.bot{background:var(--surface);border:1px solid var(--line);border-bottom-left-radius:6px;align-self:flex-start}
+.msg.me{background:var(--ink);color:var(--surface);border-bottom-right-radius:6px;align-self:flex-end}
+.msg .src{display:block;margin-top:6px;font-size:12px;color:var(--muted)}
+.msg .mini{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.msg .mini span{font-size:13px;border-radius:8px;padding:2px 8px}
+.typing{display:inline-flex;gap:4px}
+.typing i{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:blink 1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes blink{0%,100%{opacity:.25}50%{opacity:1}}
+.ai-sugg{display:flex;gap:6px;overflow-x:auto;padding:10px 12px 0;background:var(--surface)}
+.ai-sugg button{flex:none;min-height:36px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-size:13px;font-weight:700;cursor:pointer}
+.ai-form{display:flex;gap:8px;padding:12px;background:var(--surface)}
+.ai-form input{flex:1;min-width:0;min-height:46px;border-radius:12px;border:1px solid var(--line);background:var(--surface-2);padding:0 14px;font-size:15px}
+.ai-form button{width:46px;height:46px;border-radius:12px;border:0;background:var(--cool);color:#fff;display:grid;place-items:center;cursor:pointer}
+.ai-note{font-size:11px;color:var(--muted);padding:0 14px 10px;background:var(--surface)}
+.ask-card{display:flex;flex-wrap:wrap;align-items:center;gap:16px;justify-content:space-between;background:var(--navy);color:var(--navy-ink);border-radius:var(--r-lg);padding:20px 22px}
+.ask-card p{color:var(--navy-muted)}
+.ask-card .qs{display:flex;flex-wrap:wrap;gap:8px}
+.ask-card .qs button{min-height:42px;padding:0 14px;border-radius:999px;border:1px solid var(--navy-line);background:var(--navy-hi);color:var(--navy-ink);font-weight:700;cursor:pointer}
+
+@media (max-width:1100px){
+  .today,.map-wrap,.cool-wrap,.plan-wrap{grid-template-columns:minmax(0,1fr)}
+  .row3{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:820px){
+  .side{display:none}
+  .tabbar{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(78px,1fr);overflow-x:auto;position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--navy);padding-top:6px;padding-bottom:calc(6px + env(safe-area-inset-bottom,0px));padding-left:max(8px,env(safe-area-inset-left,0px));padding-right:max(8px,env(safe-area-inset-right,0px))}
+  .tabbar button{all:unset;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;min-height:52px;justify-content:center;color:var(--navy-muted);font-size:12px;font-weight:700;border-radius:10px}
+  .tabbar button[aria-current="page"]{color:var(--navy-ink);background:var(--navy-hi)}
+  .tabbar svg{width:22px;height:22px}
+  .view{padding-bottom:110px}
+  .thermal-card{min-height:460px}
+  .tc-risk .big{font-size:44px}
+  .rank .nm{width:110px}
+  .who{grid-template-columns:minmax(0,1fr)}
+  .tl{grid-template-columns:64px 24px minmax(0,1fr);gap:0 10px}
+  .legend4{display:none}
+  .ai-fab{bottom:calc(80px + env(safe-area-inset-bottom,0px));padding:0 8px}
+  .ai-fab .lbl{display:none}
+  .ai-panel{bottom:calc(144px + env(safe-area-inset-bottom,0px));height:min(560px,calc(100vh - 200px))}
+}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="app">
+  <aside class="side" aria-label="Sidebar">
+    <div class="brand"><span class="brand-mark" aria-hidden="true"><span></span></span><b>Heat Wise Local</b></div>
+    <nav class="nav" aria-label="Main">
+      <button type="button" data-view="today" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/></svg>Today</button>
+      <button type="button" data-view="map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>Heat map</button>
+      <button type="button" data-view="cool"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v20M4.9 6.5l14.2 11M19.1 6.5 4.9 17.5"/></svg>Cool spaces</button>
+      <button type="button" data-view="plan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>My heat plan</button>
+      <button type="button" data-view="people"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6"/></svg>People I check on</button>
+      <button type="button" data-view="history"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Heat history</button>
+      <span class="side-h nav-sep">Account</span>
+      <button type="button" data-view="data"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>My data</button>
+      <button type="button" data-view="about"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/></svg>About and data sources</button>
+    </nav>
+    <div class="places">
+      <span class="side-h">My places · 2pm</span>
+      <div class="place"><i class="L3"></i><div>Home<small>Hackney Central</small></div><span class="num">31°</span></div>
+      <div class="place"><i class="L4"></i><div>Nursery<small>Dalston</small></div><span class="num">33°</span></div>
+      <div class="place"><i class="L2"></i><div>Park<small>Victoria Park</small></div><span class="num">28°</span></div>
+    </div>
+    <div class="sos">
+      <span class="side-h" style="padding:0">Feeling unwell?</span>
+      <div class="sos-row"><span class="s999"><b>999</b><small>Emergency</small></span><span class="s111"><b>111</b><small>NHS advice</small></span></div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="top">
+      <div class="top-in">
+        <label class="search" for="q"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" type="search" value="Hackney Central, E8" aria-label="Search postcode or area"></label>
+        <a class="pill-alert" href="https://www.gov.uk/guidance/weather-health-alerting-system" target="_blank" rel="noopener" style="text-decoration:none"><i aria-hidden="true"></i>Amber Heat-Health Alert · London · until Thu · UKHSA</a>
+        <button class="tool" type="button" id="simpleBtn" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 12h8"/></svg><span class="tl">Simple view</span></button>
+        <button class="tool" type="button" id="readBtn" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg><span class="tl">Read aloud</span></button>
+        <label for="lang" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Language</label>
+        <select id="lang" class="lang"><option value="en">English</option><option value="tr">Türkçe</option><option value="pl">Polski</option><option value="bn">বাংলা</option></select>
+        <button class="icon-btn" type="button" aria-label="Larger text">A+</button>
+        <button class="avatar" type="button" data-view="login" aria-label="Account: Priya Sharma. Log in or register" style="border:0;cursor:pointer">PS</button>
+      </div>
+    </header>
+
+    <!-- TODAY -->
+    <section class="view" id="view-today" aria-labelledby="t-today">
+      <div class="head">
+        <div><span class="eyebrow">Tuesday · Hackney Central</span><h1 id="t-today" data-i18n="greet">Good afternoon, Priya</h1></div>
+        <p data-i18n="intro">It is a hot day near you. Here is what the heat looks like around your area right now.</p>
+      </div>
+      <div class="today">
+        <div class="thermal-card" id="todayThermal">
+          <canvas id="cvToday" aria-hidden="true"></canvas>
+          <div class="tc-over">
+            <div class="tc-top">
+              <div class="glass tc-risk">
+                <span class="eyebrow" data-i18n="riskNow">Heat risk now · 2pm</span>
+                <span class="big" data-i18n="high">High</span>
+                <span class="sub"><span class="num">31°C</span> · feels like <span class="num">33°C</span></span>
+              </div>
+              <div class="glass zone-legend" aria-hidden="true"><span style="font-weight:700">Heat risk by area</span><div><span><i class="L1"></i>Low</span><span><i class="L2"></i>Moderate</span><span><i class="L3"></i>High</span><span><i class="L4"></i>Very high</span></div></div>
+            </div>
+            <div class="tc-bottom">
+              <p class="glass tc-msg" data-i18n-html="msg">Hottest between <b>1pm and 5pm</b>. Dalston is the hottest area near you. Victoria Park is about <b>3°C cooler</b>.</p>
+              <button class="btn btn-cool" type="button" data-go="map">Open heat map</button>
+            </div>
+          </div>
+          <span class="you" style="left:52%;top:47%" aria-hidden="true"></span><span class="you-l" style="left:52%;top:47%">You</span>
+        </div>
+        <div class="stack">
+          <div class="card pad gauge-card">
+            <svg class="gauge" viewBox="0 0 200 118" role="img" aria-label="Heat risk level 3 of 4: High">
+              <path d="M20 100 A80 80 0 0 1 43.4 43.4" stroke="var(--h1)" stroke-width="18" fill="none"/>
+              <path d="M46.6 40.6 A80 80 0 0 1 97 20" stroke="var(--h2)" stroke-width="18" fill="none"/>
+              <path d="M103 20 A80 80 0 0 1 153.4 40.6" stroke="var(--h3)" stroke-width="18" fill="none"/>
+              <path d="M156.6 43.4 A80 80 0 0 1 180 100" stroke="var(--h4)" stroke-width="18" fill="none"/>
+              <line x1="100" y1="100" x2="148" y2="52" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>
+              <circle cx="100" cy="100" r="9" fill="var(--ink)"/>
+              <text x="14" y="116">Low</text><text x="160" y="116">Very high</text>
+            </svg>
+            <div class="gauge-info">
+              <span class="eyebrow">Level 3 of 4</span>
+              <h2 data-i18n="gaugeH">High heat risk</h2>
+              <p data-i18n="gaugeP">Avoid direct sun in the afternoon, drink water regularly and keep your child in the shade.</p>
+            </div>
+          </div>
+          <div class="card pad chart">
+            <div class="chart-head"><h2>How hot it will feel today</h2><span class="note">°C, feels-like</span></div>
+            <svg id="hourly" viewBox="0 0 440 210" role="img" aria-label="Feels-like temperature from 6am to 10pm, peaking at 34 degrees at 4pm"></svg>
+          </div>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="card pad">
+          <div class="chart-head"><h2 style="font-size:20px">7-day heat outlook</h2><span class="note">Peak feels-like · Hackney Central</span></div>
+          <div class="week" id="week"></div>
+          <p class="note" style="margin-top:12px">Best day for outdoor plans this week: <b style="color:var(--ink)">Sunday</b>.</p>
+        </div>
+        <div class="card pad">
+          <div class="chart-head"><h2 style="font-size:20px">Hot day checklist</h2><span class="note" id="chkCount">1 of 5 done</span></div>
+          <div class="prog" aria-hidden="true"><i id="chkBar" style="width:20%"></i></div>
+          <div class="check" id="check"></div>
+        </div>
+      </div>
+      <div class="row3">
+        <div class="card pad tip"><span class="ic" style="background:var(--alert-bg);color:var(--alert-ink)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></span><span class="when">before 11am</span><h3>Go to the park early</h3><p>Plan outdoor play for the morning, when Victoria Park is still cool.</p></div>
+        <div class="card pad tip"><span class="ic" style="background:var(--cool-soft);color:var(--cool-ink)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2s6 7 6 12a6 6 0 0 1-12 0c0-5 6-12 6-12z"/></svg></span><span class="when">all day</span><h3>Keep water with you</h3><p>Small sips often. Children need reminding to drink.</p></div>
+        <div class="card pad tip"><span class="ic" style="background:var(--surface-2);color:var(--ink)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 4v16M3 12h18"/></svg></span><span class="when">1pm – 5pm</span><h3>Close sunny curtains</h3><p>Keep rooms facing the sun shaded to stop your home heating up.</p></div>
+      </div>
+      <div class="ask-card">
+        <div style="display:flex;flex-direction:column;gap:4px;max-width:46ch"><h2 style="font-size:22px">Heat questions? Ask the Heat FAQ</h2><p>Answers come only from approved NHS and UKHSA heat advice, matched to today’s heat near you.</p></div>
+        <div class="qs"><button type="button" data-ask="Is it safe to take my child out at 3pm?">Going out at 3pm?</button><button type="button" data-ask="Where is the nearest cool place?">Nearest cool place</button><button type="button" data-ask="What are the signs of heat exhaustion?">Warning signs</button></div>
+      </div>
+    </section>
+
+    <!-- MAP -->
+    <section class="view" id="view-map" aria-labelledby="t-map" hidden>
+      <div class="head">
+        <div><span class="eyebrow">Hackney and nearby</span><h1 id="t-map">Heat map</h1></div>
+        <p>Each neighbourhood is coloured by its heat risk. Drag the time bar or press play to see how it changes through the day, and tap an area for advice.</p>
+      </div>
+      <div class="notice" id="mapNotice" role="status"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2 21h20L12 3z"/><path d="M12 10v4M12 17.5h.01"/></svg><span>The latest forecast could not load. You are seeing the 1pm forecast.</span><button type="button" id="retryBtn">Try again</button></div>
+      <div class="map-wrap">
+        <div class="map-stage" id="mapStage">
+          <canvas id="cvMap" aria-hidden="true"></canvas>
+          <div id="mapLabels"></div>
+          <div class="glass layers" role="group" aria-label="Map layers">
+            <button type="button" aria-pressed="true" data-layer="heat">Risk zones</button>
+            <button type="button" aria-pressed="false" data-layer="cool">Cool spaces</button>
+          </div>
+          <div class="glass legend4" aria-hidden="true">
+            <div><i class="L1"></i>Low</div><div><i class="L2"></i>Moderate</div><div><i class="L3"></i>High</div><div><i class="L4"></i>Very high</div>
+          </div>
+          <div class="glass scrub">
+            <button type="button" id="play" aria-label="Play through the day"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path id="playIcon" d="M7 4v16l13-8z"/></svg></button>
+            <span class="t num" id="tLabel">2pm</span>
+            <label for="hr" class="note" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Time of day</label>
+            <input id="hr" type="range" min="0" max="8" step="1" value="4">
+          </div>
+        </div>
+        <div class="stack">
+          <div class="card pad area-card" aria-live="polite">
+            <div class="area-top"><span class="area-sw" id="aSw"></span><div><span class="eyebrow">Selected area</span><h2 id="aName">Hackney Central</h2></div></div>
+            <div class="stats">
+              <div class="stat"><b id="aTemp">31°</b><span>feels like</span></div>
+              <div class="stat"><b id="aLvl" style="font-family:var(--display);font-size:20px">High</b><span>heat risk</span></div>
+            </div>
+            <p class="advice" id="aAdvice"></p>
+            <button class="btn btn-cool" type="button" data-go="cool">Cool spaces nearby</button>
+          </div>
+          <div class="card pad">
+            <div class="chart-head" style="margin-bottom:6px"><h2 style="font-size:18px">Hottest to coolest at <span id="rankT">2pm</span></h2></div>
+            <div class="rank" id="rank"></div>
+          </div>
+          <div class="card pad" style="display:flex;flex-direction:column;gap:10px">
+            <h2 style="font-size:18px">Cooler ways to go</h2>
+            <div class="ways">
+              <div class="way"><span class="ic2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h6a4 4 0 0 0 0-8h-4a4 4 0 0 1 0-8h6"/></svg></span><span><b>Home to Nursery via Victoria Park</b><small>3 minutes longer, about 3°C cooler, mostly tree shade</small></span></div>
+              <div class="way"><span class="ic2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h6a4 4 0 0 0 0-8h-4a4 4 0 0 1 0-8h6"/></svg></span><span><b>Home to Library via Morning Lane</b><small>Same time, shaded side of the street after 1pm</small></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="note">Prototype with sample data. The final app will use the hourly forecast for each neighbourhood.</p>
+    </section>
+
+    <!-- COOL -->
+    <section class="view" id="view-cool" aria-labelledby="t-cool" hidden>
+      <div class="head">
+        <div><span class="eyebrow">Within 1.5 km · open now</span><h1 id="t-cool">Cool spaces</h1></div>
+        <div class="chips" role="group" aria-label="Filter by type" id="chips"></div>
+      </div>
+      <div class="cool-wrap">
+        <div class="results" id="results"></div>
+        <div class="stack">
+          <div class="cool-map">
+            <svg viewBox="0 0 640 380" role="img" aria-label="Map of cool spaces near you, sample data" id="coolSvg">
+              <rect width="640" height="380" fill="var(--surface-2)"/>
+              <rect class="blk" x="30" y="30" width="150" height="110" rx="8"/><rect class="blk" x="220" y="30" width="130" height="110" rx="8"/><rect class="blk" x="390" y="30" width="100" height="70" rx="8"/>
+              <rect class="blk" x="30" y="190" width="150" height="120" rx="8"/><rect class="blk" x="220" y="190" width="130" height="90" rx="8"/>
+              <path class="park" d="M440 150 h170 v150 c-40 30 -120 30 -170 0z"/>
+              <rect class="park" x="40" y="40" width="80" height="60" rx="8"/>
+              <path class="water" d="M0 340 C 160 320, 300 370, 640 330 V380 H0z"/>
+              <path class="street" d="M0 165 H640"/><path class="street" d="M200 0 V380"/><path class="street" d="M370 0 L 420 380"/>
+              <g transform="translate(205 168)"><circle r="20" fill="var(--ink)" opacity=".12"/><circle class="me" r="8" stroke="var(--surface)" stroke-width="3"/></g>
+              <g id="pins"></g>
+            </svg>
+          </div>
+          <div class="card pad detail" id="detail"></div>
+        </div>
+      </div>
+      <p class="note">Prototype with sample places. The final app will use the GLA Cool Spaces dataset, OpenStreetMap and community reports.</p>
+    </section>
+
+    <!-- PLAN -->
+    <section class="view" id="view-plan" aria-labelledby="t-plan" hidden>
+      <div class="head">
+        <div><span class="eyebrow">Personal · optional</span><h1 id="t-plan">My heat plan</h1></div>
+        <p>Choose what describes you and your plan changes to match. You can delete your details at any time.</p>
+      </div>
+      <div class="plan-wrap">
+        <div class="stack">
+          <div class="card pad" style="display:flex;flex-direction:column;gap:12px">
+            <h2 style="font-size:20px">About me</h2>
+            <div class="who" id="who"></div>
+          </div>
+          <form class="card pad" style="display:flex;flex-direction:column;gap:14px" id="alertsForm">
+            <h2 style="font-size:20px">My alerts</h2>
+            <div style="display:flex;flex-direction:column;gap:6px"><span class="eyebrow" id="thrL">Alert me from</span>
+              <div class="seg" role="group" aria-labelledby="thrL" id="seg"><button type="button" aria-pressed="false">Moderate</button><button type="button" aria-pressed="true">High</button><button type="button" aria-pressed="false">Very high</button></div>
+            </div>
+            <label class="sw" for="sw1">Evening before (7pm)<input id="sw1" type="checkbox" checked></label>
+            <label class="sw" for="sw2">Morning of the day (7am)<input id="sw2" type="checkbox" checked></label>
+            <label class="sw" for="sw3">Phone notifications<input id="sw3" type="checkbox" checked></label>
+            <label class="sw" for="sw4">Email<input id="sw4" type="checkbox"></label>
+            <button class="btn btn-dark" type="submit" id="saveBtn" style="justify-content:center">Save alerts</button>
+          </form>
+          <div class="card pad" style="display:flex;flex-direction:column;gap:14px">
+            <div><h2 style="font-size:20px">Will my home overheat?</h2><p class="note" style="font-size:14px">Four quick questions about where you live.</p></div>
+            <div id="homeQ" style="display:flex;flex-direction:column;gap:12px"></div>
+            <div>
+              <div class="chart-head"><span class="eyebrow">Overheating risk</span><b id="homeLvl" style="font-family:var(--display)">High</b></div>
+              <div class="meter" aria-hidden="true"><i id="homeNeedle" style="left:70%"></i></div>
+            </div>
+            <p class="advice" id="homeTip" style="font-size:15px"></p>
+          </div>
+        </div>
+        <div class="stack">
+          <div class="card pad" style="display:flex;flex-direction:column;gap:18px">
+            <div class="chart-head"><div><span class="eyebrow">Tomorrow · Wednesday</span><h2 style="font-size:26px">Your heat day plan</h2></div><span class="lvl L3">High heat risk</span></div>
+            <ol class="timeline" id="timeline"></ol>
+          </div>
+          <div class="danger">
+            <div style="display:flex;flex-direction:column;gap:4px"><h2 style="font-size:22px">If someone feels unwell</h2><p>Move them somewhere cool, give water and loosen clothing. Confusion, fainting or no sweating with a high temperature is an emergency.</p></div>
+            <div class="sos-row"><span class="s999"><b>999</b><small>Emergency</small></span><span class="s111"><b>111</b><small>NHS advice</small></span></div>
+          </div>
+        </div>
+      </div>
+      <p class="note">Prototype. All health advice in the final app will be checked against NHS and UKHSA guidance.</p>
+    </section>
+
+    <!-- SIMPLE -->
+    <section class="view" id="view-simple" aria-labelledby="t-simple" hidden>
+      <div class="simple-wrap">
+        <h1 id="t-simple" style="font-size:28px">Today near Hackney Central</h1>
+        <div class="simple-big">
+          <span style="font-size:20px;font-weight:700">Heat risk today</span>
+          <span class="lv">High</span>
+          <p>It will feel like <b class="num">34°C</b> this afternoon. Stay out of the sun between <b>1pm and 5pm</b>.</p>
+        </div>
+        <div class="simple-row">
+          <div class="simple-tile" style="background:var(--cool-soft);color:var(--cool-ink)"><span>Nearest cool place</span><b>Hackney Central Library</b><span>350 m · open until 8pm</span></div>
+          <div class="simple-tile" style="background:var(--h4);color:var(--on-h4)"><span>Feeling unwell?</span><b class="num" style="font-family:var(--mono);font-size:44px">999</b><span>Emergency · or NHS <b class="num" style="font-family:var(--mono);font-size:20px">111</b> for advice</span></div>
+        </div>
+        <button class="btn btn-line" type="button" id="simpleExit" style="align-self:flex-start;min-height:54px;font-size:18px">Back to full view</button>
+      </div>
+    </section>
+
+    <!-- PEOPLE -->
+    <section class="view" id="view-people" aria-labelledby="t-people" hidden>
+      <div class="head">
+        <div><span class="eyebrow">Look out for each other</span><h1 id="t-people">People I check on</h1></div>
+        <p>When heat risk is high where they live, we remind you to check on them. They do not need the app, and we only keep their first name and area.</p>
+      </div>
+      <div class="people" id="people"></div>
+      <form class="card pad" id="addPerson" style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end">
+        <div style="display:flex;flex-direction:column;gap:6px;flex:1 1 200px"><label for="pName" class="eyebrow">First name</label><input id="pName" type="text" placeholder="e.g. Uncle Tariq" style="min-height:46px;border-radius:12px;border:1px solid var(--line);background:var(--surface-2);padding:0 14px"></div>
+        <div style="display:flex;flex-direction:column;gap:6px;flex:1 1 200px"><label for="pArea" class="eyebrow">Area or postcode</label><select id="pArea" style="min-height:46px;border-radius:12px;border:1px solid var(--line);background:var(--surface-2);padding:0 12px"><option>Islington</option><option>Dalston</option><option>Bow</option><option>Shoreditch</option><option>Homerton</option></select></div>
+        <button class="btn btn-dark" type="submit">Add person</button>
+      </form>
+      <p class="note">Prototype with sample people.</p>
+    </section>
+
+    <!-- HISTORY -->
+    <section class="view" id="view-history" aria-labelledby="t-history" hidden>
+      <div class="head">
+        <div><span class="eyebrow">Hackney Central · summers 2019–2026</span><h1 id="t-history">Heat history</h1></div>
+        <p>How often your area has been dangerously hot, compared with the London average.</p>
+      </div>
+      <div class="tiles">
+        <div class="card pad tile"><span>Hot days this summer</span><b>21</b><em style="color:var(--h4)">+6 on London average</em></div>
+        <div class="card pad tile"><span>Hottest day this summer</span><b>36°C</b><em style="color:var(--muted)">feels-like · 12 July</em></div>
+        <div class="card pad tile"><span>Warm nights above 20°C</span><b>9</b><em style="color:var(--muted)">harder to sleep and cool down</em></div>
+      </div>
+      <div class="card pad svgchart">
+        <div class="chart-head"><h2 style="font-size:20px">Hot days each summer</h2><span class="note">Days with feels-like 30°C or more</span></div>
+        <svg id="histChart" viewBox="0 0 760 280" role="img" aria-label="Hot days per summer, Hackney Central against London average, 2019 to 2026, sample data"></svg>
+        <div style="display:flex;gap:18px;flex-wrap:wrap;font-size:14px;margin-top:6px"><span style="display:flex;align-items:center;gap:8px"><i style="width:14px;height:14px;border-radius:4px;background:var(--h3)"></i>Hackney Central</span><span style="display:flex;align-items:center;gap:8px"><i style="width:22px;height:3px;background:var(--ink)"></i>London average</span></div>
+      </div>
+      <p class="note">Sample data for the prototype. The final app will use Open-Meteo historical weather data.</p>
+    </section>
+
+    <!-- LOGIN / REGISTER -->
+    <section class="view" id="view-login" aria-labelledby="t-login" hidden>
+      <div class="auth">
+        <div class="auth-side">
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div class="brand" style="padding:0"><span class="brand-mark" aria-hidden="true"><span></span></span><b>Heat Wise Local</b></div>
+            <h1 id="t-login" style="font-size:32px;line-height:1.1">Know your local heat risk and what to do about it.</h1>
+            <p>An account saves your places, your heat plan and your alerts. The heat map and cool spaces work without one.</p>
+          </div>
+          <ul>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>Alerts for the places you care about</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>A heat plan made for you and your family</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>Delete your data at any time</li>
+          </ul>
+        </div>
+        <form class="auth-form" id="authForm" novalidate>
+          <div class="seg" role="group" aria-label="Log in or register" id="authSeg" style="grid-template-columns:repeat(2,minmax(0,1fr))"><button type="button" aria-pressed="true" data-mode="login">Log in</button><button type="button" aria-pressed="false" data-mode="register">Register</button></div>
+          <div class="field" id="nameField" hidden><label for="aName2">First name</label><input id="aName2" type="text" autocomplete="given-name" value=""></div>
+          <div class="field"><label for="aEmail">Email</label><input id="aEmail" type="email" autocomplete="email" value="priya.sharma@example.com"></div>
+          <div class="field"><label for="aPass">Password</label><input id="aPass" type="password" autocomplete="current-password" value="sample-password"><small id="passHint" hidden>At least 8 characters.</small></div>
+          <div class="field" id="postField" hidden><label for="aPost">Home postcode (optional)</label><input id="aPost" type="text" autocomplete="postal-code" placeholder="e.g. E8 1EA"><small>Used only to show heat near you.</small></div>
+          <label class="sw" for="aKeep" id="keepRow">Keep me logged in<input id="aKeep" type="checkbox" checked></label>
+          <p class="note" id="authMsg" role="status"></p>
+          <button class="btn btn-dark" type="submit" id="authBtn" style="justify-content:center">Log in</button>
+          <button class="btn btn-line" type="button" data-view="today" style="justify-content:center">Continue without an account</button>
+        </form>
+      </div>
+      <p class="note">Prototype screen. The working login and registration components come from the module labs.</p>
+    </section>
+
+    <!-- MY DATA -->
+    <section class="view" id="view-data" aria-labelledby="t-data" hidden>
+      <div class="head">
+        <div><span class="eyebrow">Privacy · UK GDPR</span><h1 id="t-data">My data</h1></div>
+        <p>Everything Heat Wise Local keeps about you. We only store what the app needs, and you can delete it here.</p>
+      </div>
+      <div class="card pad">
+        <div class="datalist" id="dataList"></div>
+      </div>
+      <div class="card pad" style="display:flex;flex-direction:column;gap:12px" id="deleteBox">
+        <h2 style="font-size:20px">Delete my account</h2>
+        <p style="color:var(--muted)">This removes your account, places, heat plan, alert settings and the people you check on. It cannot be undone.</p>
+        <button class="btn btn-line" type="button" id="delStart" style="align-self:flex-start;color:var(--h4);border-color:var(--h4)">Delete everything</button>
+        <div class="confirm" id="delConfirm" hidden>
+          <b>Are you sure? This deletes all your data now.</b>
+          <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" type="button" id="delYes" style="background:var(--h4);color:var(--on-h4)">Yes, delete everything</button><button class="btn btn-line" type="button" id="delNo">Keep my account</button></div>
+        </div>
+      </div>
+      <p class="note">Prototype with sample data. Nothing is stored in this design.</p>
+    </section>
+
+    <!-- ABOUT -->
+    <section class="view" id="view-about" aria-labelledby="t-about" hidden>
+      <div class="head">
+        <div><span class="eyebrow">Heat Wise Local</span><h1 id="t-about">About and data sources</h1></div>
+        <p>Heat Wise Local shows residents how heat risk changes across their neighbourhood, and what to do about it.</p>
+      </div>
+      <div class="card pad" style="display:flex;flex-direction:column;gap:12px">
+        <h2 style="font-size:20px">Where our information comes from</h2>
+        <div class="tbl-wrap"><table class="tbl src-tbl"><thead><tr><th>Information</th><th>Source</th><th>How often it updates</th></tr></thead><tbody>
+          <tr><td>Temperature forecast</td><td>Open-Meteo weather API</td><td>Every hour</td></tr>
+          <tr><td>Heat-Health Alerts</td><td><a href="https://www.gov.uk/guidance/weather-health-alerting-system" target="_blank" rel="noopener">UK Health Security Agency</a>, entered by our admin</td><td>When UKHSA issues an alert</td></tr>
+          <tr><td>Cool spaces</td><td><a href="https://www.london.gov.uk/what-we-do/environment/climate-change/climate-adaptation/cool-spaces" target="_blank" rel="noopener">Greater London Authority Cool Spaces</a> and community reports</td><td>Daily, reports live</td></tr>
+          <tr><td>Map</td><td><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors</td><td>As the map changes</td></tr>
+          <tr><td>Past summers</td><td>Open-Meteo historical weather</td><td>Once a year</td></tr>
+          <tr><td>Health advice and FAQ answers</td><td>NHS and UKHSA heat guidance</td><td>Checked before each summer</td></tr>
+        </tbody></table></div>
+      </div>
+      <div class="row2">
+        <div class="card pad" style="display:flex;flex-direction:column;gap:8px"><h2 style="font-size:20px">Accessibility</h2><p style="color:var(--muted)">We aim to meet WCAG 2.2 AA: large text option, simple view, read aloud, keyboard navigation and colours that differ in lightness as well as hue.</p></div>
+        <div class="card pad" style="display:flex;flex-direction:column;gap:8px"><h2 style="font-size:20px">Important</h2><p style="color:var(--muted)">Heat Wise Local gives general guidance and is not medical advice. In an emergency call 999. For urgent health advice call NHS 111.</p></div>
+      </div>
+      <p class="note">A student project for Brunel University London. Prototype with sample data.</p>
+    </section>
+  </div>
+
+  <button type="button" class="ai-fab" id="aiFab" aria-expanded="false" aria-controls="aiPanel"><span class="orb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><span class="lbl">Heat FAQ</span></button>
+  <section class="ai-panel" id="aiPanel" aria-label="Heat FAQ chat" hidden>
+    <div class="ai-head"><span class="orb" aria-hidden="true"></span><div><b>Heat FAQ</b><small>Answers from NHS and UKHSA heat advice</small></div><button type="button" id="aiClose" aria-label="Close chat">×</button></div>
+    <div class="ai-log" id="aiLog" aria-live="polite"></div>
+    <div class="ai-sugg" id="aiSugg">
+      <button type="button" data-ask="Is it safe to take my child to the park at 3pm?">Park at 3pm?</button>
+      <button type="button" data-ask="When is it coolest today?">Coolest time</button>
+      <button type="button" data-ask="Where is the nearest cool place?">Nearest cool place</button>
+      <button type="button" data-ask="What are the signs of heat exhaustion?">Warning signs</button>
+    </div>
+    <form class="ai-form" id="aiForm"><label for="aiIn" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Ask a question</label><input id="aiIn" type="text" placeholder="Ask about heat near you…" autocomplete="off"><button type="submit" aria-label="Send"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 11 18-8-8 18-2-8-8-2z"/></svg></button></form>
+    <p class="ai-note">Answers come only from our approved list of NHS and UKHSA heat advice. This is not medical advice. Prototype with sample answers.</p>
+  </section>
+
+  <nav class="tabbar" aria-label="Main">
+    <button type="button" data-view="today" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/></svg>Today</button>
+    <button type="button" data-view="map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>Map</button>
+    <button type="button" data-view="cool"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v20M4.9 6.5l14.2 11M19.1 6.5 4.9 17.5"/></svg>Cool</button>
+    <button type="button" data-view="plan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>My plan</button>
+    <button type="button" data-view="people"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6"/></svg>People</button>
+    <button type="button" data-view="history"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>History</button>
+    <button type="button" data-view="data"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>My data</button>
+    <button type="button" data-view="about"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/></svg>About</button>
+  </nav>
+  <div class="toast" id="toast" role="status" hidden></div>
+</div>
+
+<script>
+(function(){
+  /* ---------- shared data (sample) ---------- */
+  const HOURS=['6am','8am','10am','12pm','2pm','4pm','6pm','8pm','10pm'];
+  const BASE=[0.12,0.26,0.44,0.62,0.78,0.86,0.66,0.42,0.24];
+  const BLOBS=[ // x,y,radius,weight (normalised map space)
+    [0.50,0.46,0.20,0.34],[0.33,0.28,0.13,0.22],[0.66,0.70,0.15,0.26],[0.20,0.72,0.11,0.20],[0.47,0.18,0.10,0.18],
+    [0.80,0.36,0.13,-0.46],[0.36,0.60,0.06,-0.20],[0.15,0.40,0.07,-0.14],[0.20,0.92,0.16,-0.30],[0.55,0.95,0.16,-0.30],[0.88,0.92,0.16,-0.30]
+  ];
+  const AREAS=[
+    {n:'Stoke Newington',x:0.20,y:0.14},{n:'Dalston',x:0.46,y:0.17},{n:'Homerton',x:0.78,y:0.16},
+    {n:'Islington',x:0.15,y:0.44},{n:'Hackney Central',x:0.52,y:0.45},{n:'Victoria Park',x:0.82,y:0.38},
+    {n:'Shoreditch',x:0.22,y:0.73},{n:'Bethnal Green',x:0.52,y:0.74},{n:'Bow',x:0.83,y:0.72}
+  ];
+  const STOPS=[[0,[20,33,61]],[0.22,[59,28,110]],[0.42,[156,31,110]],[0.62,[226,83,45]],[0.82,[249,160,63]],[1,[255,233,163]]];
+  const ADVICE={1:'Comfortable for most people. A good time to be outside.',2:'Warm. Drink water and take breaks in the shade if you are out for long.',3:'Very warm. Avoid direct sun where you can, drink water regularly and check on older neighbours.',4:'Extremely hot. Stay in the shade or indoors, avoid hard activity and keep children and older people cool.'};
+  const LNAME={1:'Low',2:'Moderate',3:'High',4:'Very high'};
+  const toastEl=()=>document.getElementById('toast');
+  let tt;function toast(msg){const t=toastEl();t.textContent=msg;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>{t.hidden=true;},2200);}
+
+  function field(x,y,h){
+    let v=BASE[h]*0.75;
+    for(const b of BLOBS){const dx=x-b[0],dy=(y-b[1])*0.75,d2=dx*dx+dy*dy;v+=b[3]*Math.exp(-d2/(b[2]*b[2]))*(0.55+0.6*BASE[h]);}
+    v+=0.035*Math.sin(x*37+y*11)+0.03*Math.cos(x*13-y*29);
+    return Math.max(0,Math.min(1,v));
+  }
+  const tempAt=(x,y,h)=>Math.round(17+19*field(x,y,h));
+  const lvlOf=(t)=>t<26?1:t<30?2:t<33?3:4;
+  function pal(v){
+    for(let i=1;i<STOPS.length;i++){if(v<=STOPS[i][0]){const a=STOPS[i-1],b=STOPS[i],t=(v-a[0])/(b[0]-a[0]);return a[1].map((c,k)=>Math.round(c+(b[1][k]-c)*t));}}
+    return STOPS[STOPS.length-1][1];
+  }
+
+  /* neighbourhood risk zones: a 3 x 3 grid of areas, each coloured by its forecast heat risk */
+  const VX=[[[0,0],[0.34,0],[0.63,0],[1,0]],[[0,0.30],[0.33,0.27],[0.66,0.31],[1,0.26]],[[0,0.60],[0.36,0.62],[0.65,0.57],[1,0.61]],[[0,1],[0.35,1],[0.62,1],[1,1]]];
+  const HEX={1:'#FFE08A',2:'#FFB347',3:'#F2702E',4:'#B3261E'};
+  AREAS.forEach((a,i)=>{const r=Math.floor(i/3),c=i%3;a.poly=[VX[r][c],VX[r][c+1],VX[r+1][c+1],VX[r+1][c]];a.x=a.poly.reduce((s,p)=>s+p[0],0)/4;a.y=a.poly.reduce((s,p)=>s+p[1],0)/4;});
+  function drawThermal(cv,h,opt){
+    opt=opt||{};
+    const r=cv.getBoundingClientRect();if(!r.width)return;
+    const dpr=Math.min(2,window.devicePixelRatio||1);
+    cv.width=Math.round(r.width*dpr);cv.height=Math.round(r.height*dpr);
+    const ctx=cv.getContext('2d');
+    const w=cv.width,hh=cv.height;
+    ctx.fillStyle='#14213d';ctx.fillRect(0,0,w,hh);
+    const path=(poly)=>{ctx.beginPath();poly.forEach((p,i)=>i?ctx.lineTo(p[0]*w,p[1]*hh):ctx.moveTo(p[0]*w,p[1]*hh));ctx.closePath();};
+    AREAS.forEach(a=>{
+      const L=lvlOf(tempAt(a.x,a.y,h));
+      path(a.poly);ctx.fillStyle=HEX[L];ctx.fill();
+      const g=ctx.createRadialGradient(a.x*w,a.y*hh,0,a.x*w,a.y*hh,0.28*w);g.addColorStop(0,'rgba(255,255,255,0.18)');g.addColorStop(1,'rgba(255,255,255,0)');
+      ctx.save();path(a.poly);ctx.clip();ctx.fillStyle=g;ctx.fillRect(0,0,w,hh);
+      // faint street grid inside each zone
+      ctx.strokeStyle='rgba(13,24,40,0.10)';ctx.lineWidth=1*dpr;
+      for(let i=1;i<16;i++){ctx.beginPath();ctx.moveTo(i/16*w,0);ctx.lineTo(i/16*w+0.03*w,hh);ctx.stroke();}
+      for(let j=1;j<11;j++){ctx.beginPath();ctx.moveTo(0,j/11*hh);ctx.lineTo(w,j/11*hh+0.02*hh);ctx.stroke();}
+      ctx.restore();
+    });
+    // zone borders
+    ctx.lineJoin='round';ctx.strokeStyle='#0D1828';ctx.lineWidth=4*dpr;AREAS.forEach(a=>{path(a.poly);ctx.stroke();});
+    // main roads and river
+    ctx.lineCap='round';ctx.strokeStyle='rgba(255,255,255,0.55)';ctx.lineWidth=2.5*dpr;
+    [[0.05,0.95,0.95,0.08],[0,0.45,1,0.42]].forEach(L=>{ctx.beginPath();ctx.moveTo(L[0]*w,L[1]*hh);ctx.lineTo(L[2]*w,L[3]*hh);ctx.stroke();});
+    ctx.strokeStyle='rgba(120,200,220,0.9)';ctx.lineWidth=7*dpr;ctx.beginPath();
+    ctx.moveTo(0,0.93*hh);ctx.bezierCurveTo(0.3*w,0.86*hh,0.6*w,0.99*hh,w,0.9*hh);ctx.stroke();
+    if(opt.cool){
+      [[0.80,0.36],[0.36,0.60],[0.15,0.40],[0.58,0.84],[0.30,0.22]].forEach(p=>{
+        ctx.fillStyle='#0C7A83';ctx.strokeStyle='#fff';ctx.lineWidth=3*dpr;ctx.beginPath();ctx.arc(p[0]*w,p[1]*hh,10*dpr,0,Math.PI*2);ctx.fill();ctx.stroke();
+        ctx.strokeStyle='#fff';ctx.lineWidth=2*dpr;ctx.beginPath();ctx.moveTo(p[0]*w-4*dpr,p[1]*hh);ctx.lineTo(p[0]*w+4*dpr,p[1]*hh);ctx.moveTo(p[0]*w,p[1]*hh-4*dpr);ctx.lineTo(p[0]*w,p[1]*hh+4*dpr);ctx.stroke();
+      });
+    }
+    if(opt.sel){
+      ctx.strokeStyle='#ffffff';ctx.lineWidth=5*dpr;path(opt.sel.poly);ctx.stroke();
+    }
+  }
+
+  /* ---------- navigation ---------- */
+  const views=['today','map','cool','plan','people','history','data','about','login','simple'];
+  function show(v){
+    if(!views.includes(v))v='today';
+    const sb=document.getElementById('simpleBtn');if(sb)sb.setAttribute('aria-pressed',String(v==='simple'));
+    views.forEach(id=>{document.getElementById('view-'+id).hidden=id!==v;});
+    document.querySelectorAll('[data-view]').forEach(b=>{if(b.dataset.view===v)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
+    try{history.replaceState(null,'','#'+v);}catch(e){}
+    window.scrollTo(0,0);
+    requestAnimationFrame(()=>{if(v==='today')drawToday();if(v==='map')drawMap();if(v==='history')drawHistory();});
+  }
+  document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>show(b.dataset.view)));
+  document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>show(b.dataset.go)));
+
+  /* ---------- today ---------- */
+  function drawToday(){drawThermal(document.getElementById('cvToday'),4,{});}
+  (function hourly(){
+    const svg=document.getElementById('hourly');
+    const temps=[19,22,26,30,33,34,31,27,23];
+    const X0=34,X1=426,Y0=170,Y1=26,tmin=16,tmax=36;
+    const x=i=>X0+(X1-X0)*i/(temps.length-1), y=t=>Y0-(Y0-Y1)*(t-tmin)/(tmax-tmin);
+    let s='<defs><linearGradient id="ga" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--h3)" stop-opacity=".45"/><stop offset="1" stop-color="var(--h1)" stop-opacity=".08"/></linearGradient></defs>';
+    [20,25,30,35].forEach(t=>{s+=`<line class="grid" x1="${X0}" x2="${X1}" y1="${y(t)}" y2="${y(t)}"/><text class="axis" x="${X0-8}" y="${y(t)+4}" text-anchor="end">${t}</text>`;});
+    const pts=temps.map((t,i)=>[x(i),y(t)]);
+    let d='M'+pts.map(p=>p.join(' ')).join(' L ');
+    s+=`<path d="${d} L ${X1} ${Y0} L ${X0} ${Y0} Z" fill="url(#ga)"/>`;
+    s+=`<path class="line" d="${d}"/>`;
+    s+=`<line class="now" x1="${x(4)}" x2="${x(4)}" y1="${Y1-6}" y2="${Y0}"/><text class="lab" x="${x(4)}" y="${Y1-10}" text-anchor="middle">now</text>`;
+    temps.forEach((t,i)=>{const L=lvlOf(t);s+=`<circle cx="${x(i)}" cy="${y(t)}" r="${i===5?7:5}" fill="var(--h${L})" stroke="var(--surface)" stroke-width="2"/>`;
+      if(i%2===1||i===5)s+=`<text class="lab" x="${x(i)}" y="${y(t)-12}" text-anchor="middle">${t}°</text>`;
+      s+=`<text class="axis" x="${x(i)}" y="${Y0+22}" text-anchor="middle">${HOURS[i]}</text>`;});
+    svg.innerHTML=s;
+  })();
+
+  /* ---------- map ---------- */
+  let hour=4, sel=AREAS[4], layers={cool:false}, timer=null;
+  const stage=document.getElementById('mapStage'), labels=document.getElementById('mapLabels');
+  function drawMap(){
+    drawThermal(document.getElementById('cvMap'),hour,{cool:layers.cool,sel});
+    labels.innerHTML=AREAS.map(a=>{const t=tempAt(a.x,a.y,hour);return `<span class="map-label${a===sel?' sel':''}" style="left:${a.x*100}%;top:${a.y*100}%">${a.n}<br><span class="num" style="font-size:12px">${t}°</span></span>`;}).join('');
+    document.getElementById('tLabel').textContent=HOURS[hour];
+    document.getElementById('rankT').textContent=HOURS[hour];
+    const t=tempAt(sel.x,sel.y,hour),L=lvlOf(t);
+    document.getElementById('aName').textContent=sel.n;
+    document.getElementById('aTemp').textContent=t+'°';
+    document.getElementById('aLvl').textContent=LNAME[L];
+    document.getElementById('aSw').style.background=`var(--h${L})`;
+    document.getElementById('aAdvice').textContent=ADVICE[L];
+    const list=AREAS.filter(a=>a.n).map(a=>({a,t:tempAt(a.x,a.y,hour)})).sort((p,q)=>q.t-p.t);
+    document.getElementById('rank').innerHTML=list.map(o=>{const L2=lvlOf(o.t);return `<button type="button" data-area="${o.a.n}"><span class="nm">${o.a.n}</span><span class="bar"><i style="width:${Math.max(8,(o.t-16)/20*100)}%;background:var(--h${L2})"></i></span><span class="num">${o.t}°</span></button>`;}).join('');
+    document.querySelectorAll('#rank button').forEach(b=>b.addEventListener('click',()=>{sel=AREAS.find(a=>a.n===b.dataset.area);drawMap();}));
+  }
+  document.getElementById('hr').addEventListener('input',e=>{hour=+e.target.value;drawMap();});
+  stage.addEventListener('click',e=>{
+    if(e.target.closest('.glass'))return;
+    const r=stage.getBoundingClientRect(),px=(e.clientX-r.left)/r.width,py=(e.clientY-r.top)/r.height;
+    let best=AREAS[0],bd=9;AREAS.forEach(a=>{const d=(a.x-px)**2+(a.y-py)**2;if(d<bd){bd=d;best=a;}});
+    sel=best;drawMap();
+  });
+  document.querySelectorAll('[data-layer]').forEach(b=>b.addEventListener('click',()=>{
+    const k=b.dataset.layer;if(k==='heat')return;
+    layers[k]=!layers[k];b.setAttribute('aria-pressed',String(layers[k]));drawMap();
+  }));
+  const play=document.getElementById('play'),icon=document.getElementById('playIcon');
+  play.addEventListener('click',()=>{
+    if(timer){clearInterval(timer);timer=null;icon.setAttribute('d','M7 4v16l13-8z');play.setAttribute('aria-label','Play through the day');return;}
+    icon.setAttribute('d','M6 4h4v16H6zM14 4h4v16h-4z');play.setAttribute('aria-label','Pause');
+    timer=setInterval(()=>{hour=(hour+1)%HOURS.length;document.getElementById('hr').value=hour;drawMap();},900);
+  });
+
+  /* ---------- cool spaces ---------- */
+  const PLACES=[
+    {id:1,n:'Hackney Central Library',type:'Library',d:'350 m',open:'Open until 8pm',tags:['Air-conditioned','Step-free','Seating'],fac:['Air-conditioned','Step-free access','Seating','Toilets','Free water'],rep:'Quiet · 15 min ago',rc:'var(--cool)',x:260,y:110},
+    {id:2,n:'London Fields shade',type:'Park',d:'900 m',open:'Open all day',tags:['Tree shade','Fountain'],fac:['Tree shade','Drinking fountain','Benches','Toilets nearby'],rep:'Busy · 40 min ago',rc:'var(--h3)',x:80,y:70},
+    {id:3,n:'Mare Street Community Centre',type:'Community',d:'600 m',open:'Open until 6pm',tags:['Cool room','Step-free'],fac:['Cool room','Step-free access','Seating','Free water'],rep:'No reports today',rc:'var(--muted)',x:285,y:235},
+    {id:4,n:'Victoria Park lakeside',type:'Park',d:'1.4 km',open:'Open all day',tags:['Tree shade','Café'],fac:['Tree shade','Drinking fountain','Café','Toilets'],rep:'Open · 1 hr ago',rc:'var(--cool)',x:525,y:225},
+    {id:5,n:'Dalston drinking fountain',type:'Water',d:'1.1 km',open:'Always on',tags:['Water refill'],fac:['Water refill','Step-free access'],rep:'Working · 2 hrs ago',rc:'var(--cool)',x:440,y:60}
+  ];
+  const TYPES=[['all','All'],['Library','Libraries'],['Park','Parks and shade'],['Community','Community centres'],['Water','Water points']];
+  let ctype='all',cid=1,stepFree=false;
+  const tick='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>';
+  function renderCool(){
+    document.getElementById('chips').innerHTML=TYPES.map(([k,l])=>`<button type="button" class="chip" data-t="${k}" aria-pressed="${k===ctype}">${l}</button>`).join('')+`<button type="button" class="chip" id="sfChip" aria-pressed="${stepFree}" style="border-style:dashed">Step-free only</button>`;
+    document.querySelectorAll('#chips .chip[data-t]').forEach(b=>b.addEventListener('click',()=>{ctype=b.dataset.t;renderCool();}));
+    document.getElementById('sfChip').addEventListener('click',()=>{stepFree=!stepFree;renderCool();});
+    const shown=PLACES.filter(p=>(ctype==='all'||p.type===ctype)&&(!stepFree||p.fac.includes('Step-free access')));
+    if(!shown.find(p=>p.id===cid)&&shown[0])cid=shown[0].id;
+    document.getElementById('detail').hidden=shown.length===0;
+    if(!shown.length){
+      document.getElementById('results').innerHTML=`<div class="empty"><b>No places match these filters</b><p>None of the nearby ${TYPES.find(t=>t[0]===ctype)[1].toLowerCase()} are listed as step-free. Try another type or turn off “Step-free only”.</p><button class="btn btn-line" type="button" id="clearF">Clear filters</button></div>`;
+      document.getElementById('clearF').addEventListener('click',()=>{ctype='all';stepFree=false;renderCool();});
+      document.getElementById('pins').innerHTML=PLACES.map(p=>`<g class="pin off" transform="translate(${p.x} ${p.y})"><circle r="16"/><text y="5">${p.id}</text></g>`).join('');
+      return;
+    }
+    document.getElementById('results').innerHTML=shown.map(p=>`<button type="button" class="res" data-id="${p.id}" aria-pressed="${p.id===cid}"><span class="n">${p.id}</span><span class="body"><span class="t1"><b>${p.n}</b><span class="num" style="color:var(--muted);font-size:14px;white-space:nowrap">${p.d}</span></span><span class="meta">${p.open}</span><span class="tags">${p.tags.map(t=>`<span>${t}</span>`).join('')}</span><span class="report" style="color:${p.rc}"><i style="background:${p.rc}"></i>${p.rep}</span></span></button>`).join('');
+    document.querySelectorAll('#results .res').forEach(b=>b.addEventListener('click',()=>{cid=+b.dataset.id;renderCool();}));
+    document.getElementById('pins').innerHTML=PLACES.map(p=>{const on=p.id===cid,vis=shown.includes(p);return `<g class="pin${on?' on':''}${vis?'':' off'}" transform="translate(${p.x} ${p.y})"><circle r="${on?19:16}"/><text y="5">${p.id}</text></g>`;}).join('');
+    const p=PLACES.find(q=>q.id===cid);
+    document.getElementById('detail').innerHTML=`<div class="detail-top"><div><span class="eyebrow">${p.type==='Community'?'Community centre':p.type==='Water'?'Water point':p.type==='Park'?'Park and shade':'Library'}</span><h2>${p.n}</h2><span style="color:var(--muted)">${p.open} · <span class="num">${p.d}</span> walk</span></div><a class="btn btn-dark" href="https://www.openstreetmap.org/" target="_blank" rel="noopener">Get directions</a></div><div class="fac">${p.fac.map(f=>`<span>${tick}${f}</span>`).join('')}</div><div class="rep-row"><b style="margin-right:4px">Update for others:</b><button class="btn btn-line" type="button">Open</button><button class="btn btn-line" type="button">Busy</button><button class="btn btn-line" type="button">Closed</button><button class="btn btn-line" type="button">No shade</button></div>`+reviewsHTML(p);
+  }
+  /* quick-tag reviews: no photos or free text, so nothing needs moderating */
+  const TAGS=['Cool inside','Good shade','Seating','Water working','Quiet','Step-free'];
+  const TAGCOUNT={1:[14,0,11,9,8,12],2:[0,17,6,5,2,0],3:[9,0,7,6,5,8],4:[0,21,10,12,4,0],5:[0,0,0,15,0,7]};
+  const myTags={};
+  function reviewsHTML(p){
+    const c=TAGCOUNT[p.id]||[];
+    const sum=TAGS.map((t,i)=>c[i]?`<span>${t}<b>${c[i]+((myTags[p.id]||[]).includes(t)?1:0)}</b></span>`:'').join('');
+    return `<div class="reviews"><b>What residents say</b><div class="tagsum">${sum}</div><span class="note">Tap what was true when you visited:</span><div class="tagbtns" data-pid="${p.id}">${TAGS.map(t=>`<button type="button" data-tag="${t}" aria-pressed="${(myTags[p.id]||[]).includes(t)}">${t}</button>`).join('')}</div></div>`;
+  }
+  document.getElementById('detail').addEventListener('click',e=>{
+    const b=e.target.closest('[data-tag]');if(!b)return;
+    const pid=+b.closest('[data-pid]').dataset.pid,t=b.dataset.tag;
+    const arr=myTags[pid]=myTags[pid]||[];const i=arr.indexOf(t);if(i>-1)arr.splice(i,1);else arr.push(t);
+    renderCool();toast('Thanks, your review was added');
+  });
+  renderCool();
+
+  /* ---------- plan ---------- */
+  const WHO=[
+    {k:'parent',b:'Parent or carer',s:'Looking after a young child'},
+    {k:'older',b:'Aged 65 or over',s:'Heat affects you more'},
+    {k:'outdoor',b:'Work outdoors',s:'Plan around your shift'},
+    {k:'home',b:'Mostly at home',s:'Keep your home cool'}
+  ];
+  let who={parent:true,older:false,outdoor:false,home:false};
+  const PLAN=[
+    {time:'Tonight 7pm',col:'var(--h1)',h:'Get ready',gen:[['Fill water bottles','Put them in the fridge overnight.'],['Check tomorrow’s map','See when your places get hottest.']],me:{parent:['Pack a hat and clip-on buggy shade','Never cover a buggy with a blanket.'],older:['Check your fan and medicines','Keep medicines below 25°C.'],outdoor:['Agree an early start','Ask your supervisor about shaded breaks.'],home:['Find your coolest room','Plan to spend the afternoon there.']}},
+    {time:'7am – 11am',col:'var(--h2)',h:'Do outdoor things early',gen:[['Open windows while it is cool','Close them again by 10am.']],me:{parent:['Park or nursery walk now','Victoria Park stays coolest until late morning.'],older:['Shop and walk before 11am','Take water with you.'],outdoor:['Do the hardest jobs first','Leave lighter tasks for the afternoon.'],home:['Air the house now','Open windows on both sides while it is cool.']}},
+    {time:'1pm – 5pm',col:'var(--h4)',h:'Hottest hours: stay cool',gen:[['Stay in the shade or indoors','Close curtains on sunny windows.'],['Drink regularly','Sip water even if you are not thirsty.']],me:{parent:['Keep your child cool and resting','Check them often for signs of overheating.'],older:['Rest in your coolest room','Ask someone to check on you.'],outdoor:['Shaded break every hour','Tell your team how you feel.'],home:['Close sunny curtains and windows','Use a fan and a damp cloth to cool down.']}},
+    {time:'Any time',col:'var(--ink)',h:'Warning signs',gen:[['Heat exhaustion','Headache, dizziness, feeling sick or very thirsty: cool down and drink water.'],['Heatstroke is an emergency','Confusion, fainting or no sweating: call 999.']],me:{parent:['Child floppy, sleepy or very hot','Cool them straight away and call 111, or 999 if hard to wake.']}}
+  ];
+  const ck='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>';
+  function renderPlan(){
+    document.getElementById('who').innerHTML=WHO.map(w=>`<button type="button" data-k="${w.k}" aria-pressed="${!!who[w.k]}"><b>${w.b}</b><small>${w.s}</small></button>`).join('');
+    document.querySelectorAll('#who button').forEach(b=>b.addEventListener('click',()=>{who[b.dataset.k]=!who[b.dataset.k];renderPlan();}));
+    document.getElementById('timeline').innerHTML=PLAN.map(st=>{
+      const mine=WHO.filter(w=>who[w.k]&&st.me[w.k]).map(w=>`<div class="me">${ck}<span><b>${st.me[w.k][0]}</b><small>${st.me[w.k][1]}</small></span></div>`).join('');
+      const gen=st.gen.map(g=>`<div>${ck}<span><b>${g[0]}</b><small>${g[1]}</small></span></div>`).join('');
+      return `<li class="tl"><span class="time">${st.time}</span><span class="rail"><span class="dot" style="background:${st.col}"></span><span class="stem"></span></span><div class="content"><h3>${st.h}</h3><div class="todo">${mine}${gen}</div></div></li>`;
+    }).join('');
+  }
+  renderPlan();
+  document.querySelectorAll('#seg button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('#seg button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));}));
+  document.getElementById('alertsForm').addEventListener('submit',e=>{e.preventDefault();const s=document.getElementById('saveBtn');s.textContent='Alerts saved';setTimeout(()=>{s.textContent='Save alerts';},1800);});
+
+  /* ---------- 7-day outlook ---------- */
+  (function(){
+    const days=[['Tue','34',4,'Today'],['Wed','33',4,'Amber alert'],['Thu','31',3,''],['Fri','29',2,''],['Sat','27',2,''],['Sun','24',1,'Best day'],['Mon','26',2,'']];
+    document.getElementById('week').innerHTML=days.map((d,i)=>`<div class="day${i===0?' today':''}"><span class="dn">${d[0]}</span><span class="blk L${d[2]}">${d[1]}°</span><small>${LNAME[d[2]]}${d[3]?'<br>'+d[3]:''}</small></div>`).join('');
+  })();
+
+  /* ---------- checklist ---------- */
+  const CHK=[['Fill water bottles and chill them',true,'7pm'],['Close curtains on sunny windows',false,'10am'],['Pack hat and buggy shade',false,'8am'],['Check on Mum before lunch',false,'11am'],['Move park trip to the morning',false,'']];
+  function renderCheck(){
+    const done=CHK.filter(c=>c[1]).length;
+    document.getElementById('chkCount').textContent=`${done} of ${CHK.length} done`;
+    document.getElementById('chkBar').style.width=(done/CHK.length*100)+'%';
+    document.getElementById('check').innerHTML=CHK.map((c,i)=>`<label class="${c[1]?'done':''}" for="ck${i}"><input id="ck${i}" type="checkbox" data-i="${i}" ${c[1]?'checked':''}><span>${c[0]}</span>${c[2]?`<button type="button" class="rem" data-r="${i}" aria-pressed="${!c[1]}" aria-label="Reminder at ${c[2]}">${c[2]}</button>`:''}</label>`).join('');
+    document.querySelectorAll('#check input').forEach(x=>x.addEventListener('change',()=>{CHK[+x.dataset.i][1]=x.checked;renderCheck();}));
+    document.querySelectorAll('#check .rem').forEach(b=>b.addEventListener('click',e=>{e.preventDefault();const on=b.getAttribute('aria-pressed')!=='true';b.setAttribute('aria-pressed',String(on));toast(on?`Reminder set for ${CHK[+b.dataset.r][2]}`:'Reminder removed');}));
+  }
+  renderCheck();
+
+  /* ---------- simple mode, read aloud, language ---------- */
+  let prev='today';
+  document.getElementById('simpleBtn').addEventListener('click',()=>{const cur=views.find(v=>!document.getElementById('view-'+v).hidden);if(cur==='simple'){show(prev);}else{prev=cur||'today';show('simple');}});
+  document.getElementById('simpleExit').addEventListener('click',()=>show(prev));
+  const I18N={
+    en:{greet:'Good afternoon, Priya',intro:'It is a hot day near you. Here is what the heat looks like around your area right now.',riskNow:'Heat risk now · 2pm',high:'High',gaugeH:'High heat risk',gaugeP:'Avoid direct sun in the afternoon, drink water regularly and keep your child in the shade.',msg:'Hottest between <b>1pm and 5pm</b>. Hackney Central and Dalston are the hottest areas near you. Victoria Park is about <b>3°C cooler</b>.',say:'Heat risk near Hackney Central is high today. It will feel like 34 degrees this afternoon. Stay out of the sun between 1 and 5pm, drink water regularly, and keep your child in the shade. The nearest cool place is Hackney Central Library.'},
+    tr:{greet:'İyi günler, Priya',intro:'Bugün bölgenizde hava çok sıcak. Çevrenizdeki sıcaklığın şu anki durumu burada.',riskNow:'Şu anki sıcak riski · 14:00',high:'Yüksek',gaugeH:'Yüksek sıcak riski',gaugeP:'Öğleden sonra doğrudan güneşten kaçının, düzenli su için ve çocuğunuzu gölgede tutun.',msg:'En sıcak saatler <b>13:00–17:00</b>. Victoria Park yaklaşık <b>3°C daha serin</b>.',say:'Bugün Hackney Central çevresinde sıcak riski yüksek. Öğleden sonra 13:00 ile 17:00 arasında güneşten uzak durun ve düzenli su için.'},
+    pl:{greet:'Dzień dobry, Priya',intro:'Dziś w Twojej okolicy jest gorąco. Tak wygląda teraz upał wokół Ciebie.',riskNow:'Ryzyko upału teraz · 14:00',high:'Wysokie',gaugeH:'Wysokie ryzyko upału',gaugeP:'Unikaj bezpośredniego słońca po południu, regularnie pij wodę i trzymaj dziecko w cieniu.',msg:'Najgoręcej między <b>13:00 a 17:00</b>. Victoria Park jest o około <b>3°C chłodniejszy</b>.',say:'Dziś ryzyko upału w okolicy Hackney Central jest wysokie. Unikaj słońca między 13:00 a 17:00 i regularnie pij wodę.'},
+    bn:{greet:'শুভ অপরাহ্ন, প্রিয়া',intro:'আজ আপনার এলাকায় খুব গরম। আপনার আশেপাশে এখন তাপ কেমন, তা এখানে দেখুন।',riskNow:'এখন তাপের ঝুঁকি · দুপুর ২টা',high:'উচ্চ',gaugeH:'উচ্চ তাপ ঝুঁকি',gaugeP:'বিকেলে সরাসরি রোদ এড়িয়ে চলুন, নিয়মিত পানি পান করুন এবং আপনার শিশুকে ছায়ায় রাখুন।',msg:'দুপুর ১টা থেকে বিকেল ৫টা সবচেয়ে গরম। ভিক্টোরিয়া পার্ক প্রায় <b>৩°C বেশি ঠান্ডা</b>।',say:'আজ হ্যাকনি সেন্ট্রালে তাপের ঝুঁকি উচ্চ। দুপুর ১টা থেকে বিকেল ৫টা পর্যন্ত রোদ এড়িয়ে চলুন এবং নিয়মিত পানি পান করুন।'}
+  };
+  const LOCALE={en:'en-GB',tr:'tr-TR',pl:'pl-PL',bn:'bn-BD'};
+  let lang='en';
+  document.getElementById('lang').addEventListener('change',e=>{
+    lang=e.target.value;const L=I18N[lang];
+    document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=L[el.dataset.i18n];});
+    document.querySelectorAll('[data-i18n-html]').forEach(el=>{el.innerHTML=L[el.dataset.i18nHtml];});
+    document.documentElement.lang=lang;
+    if(lang!=='en')show('today');
+    toast(lang==='en'?'Language: English':'Today’s summary translated (prototype)');
+  });
+  const readBtn=document.getElementById('readBtn');
+  readBtn.addEventListener('click',()=>{
+    const ss=window.speechSynthesis;
+    if(!ss||typeof SpeechSynthesisUtterance==='undefined'){toast('Read aloud is not available in this browser');return;}
+    if(ss.speaking){ss.cancel();readBtn.setAttribute('aria-pressed','false');return;}
+    const u=new SpeechSynthesisUtterance(I18N[lang].say);u.lang=LOCALE[lang];u.rate=0.95;
+    u.onend=()=>readBtn.setAttribute('aria-pressed','false');
+    readBtn.setAttribute('aria-pressed','true');ss.speak(u);
+  });
+
+  /* ---------- home overheating check ---------- */
+  const HQ=[['Home type',['Flat','House'],0,[2,0]],['Which floor?',['Ground','Middle','Top'],2,[0,1,2]],['Main windows face',['North','East/West','South'],2,[0,1,2]],['Can you open windows on two sides?',['Yes','No'],1,[0,2]]];
+  function renderHome(){
+    document.getElementById('homeQ').innerHTML=HQ.map((q,i)=>`<div class="q"><span class="eyebrow" id="hq${i}">${q[0]}</span><div class="seg" role="group" aria-labelledby="hq${i}" style="--n:${q[1].length}">${q[1].map((o,j)=>`<button type="button" data-q="${i}" data-o="${j}" aria-pressed="${q[2]===j}">${o}</button>`).join('')}</div></div>`).join('');
+    document.querySelectorAll('#homeQ button').forEach(b=>b.addEventListener('click',()=>{HQ[+b.dataset.q][2]=+b.dataset.o;renderHome();}));
+    const score=HQ.reduce((s,q)=>s+q[3][q[2]],0), max=8, pct=score/max;
+    const lv=pct<0.25?1:pct<0.5?2:pct<0.8?3:4;
+    document.getElementById('homeLvl').textContent=LNAME[lv];
+    document.getElementById('homeNeedle').style.left=(6+pct*88)+'%';
+    const tips={1:'Your home should stay fairly cool. Keep curtains closed on sunny afternoons.',2:'Your home may get warm. Close curtains on sunny windows and open windows at night when it is cooler outside.',3:'Your home is likely to overheat. Shade sunny windows from outside if you can, open windows at night, and plan to spend the hottest hours in a cool space.',4:'Your home is very likely to overheat. Use a cool space between 1pm and 5pm, keep a fan ready and ask someone to check on you.'};
+    document.getElementById('homeTip').textContent=tips[lv];
+  }
+  renderHome();
+
+  /* ---------- people I check on ---------- */
+  const PEOPLE=[{n:'Mum',r:'Mother',area:'Hackney Central',t:31,done:false,c:'#FFE08A'},{n:'Arthur',r:'Neighbour',area:'Bethnal Green',t:32,done:true,at:'10:40am',c:'#DDF1F2'},{n:'Shirin',r:'Aunt',area:'Bow',t:29,done:false,c:'#E9DDF8'}];
+  function renderPeople(){
+    document.getElementById('people').innerHTML=PEOPLE.map((p,i)=>{const L=lvlOf(p.t);const ini=p.n.replace(/\(.*\)/,'').trim().split(' ').map(w=>w[0]).join('').slice(0,2);
+      return `<div class="card pad person"><div class="p-top"><span class="p-av" style="background:${p.c};color:#1A1206">${ini}</span><div><b>${p.n}</b><small>${p.r} · ${p.area}</small></div><span class="lvl L${L}">${LNAME[L]}</span></div>
+      <div class="p-status${p.done?' p-done':''}"><i class="L${L}"></i><span>${p.done?`Checked in at ${p.at}. Next check-in tomorrow.`:`Feels like <b class="num">${p.t}°C</b> in ${p.area} at 2pm. ${L>=3?'Check in before 12pm.':'No check-in needed today.'}`}</span></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">${p.done?`<button class="btn btn-line" type="button" data-undo="${i}">Undo</button>`:`<button class="btn btn-dark" type="button" data-done="${i}">I’ve checked in</button>`}<button class="btn btn-cool" type="button" data-tips="${i}">What to ask them</button><button class="btn btn-line" type="button" data-rm="${i}">Remove</button></div></div>`;}).join('')||`<div class="empty"><b>No one added yet</b><p>Add an older relative or neighbour. When heat risk is high where they live, we remind you to check on them.</p></div>`;
+    document.querySelectorAll('[data-rm]').forEach(b=>b.addEventListener('click',()=>{const n=PEOPLE[+b.dataset.rm].n;PEOPLE.splice(+b.dataset.rm,1);renderPeople();toast(n+' removed');}));
+    document.querySelectorAll('[data-done]').forEach(b=>b.addEventListener('click',()=>{const p=PEOPLE[+b.dataset.done];p.done=true;p.at=new Date().toLocaleTimeString('en-GB',{hour:'numeric',minute:'2-digit'});renderPeople();toast('Check-in saved');}));
+    document.querySelectorAll('[data-undo]').forEach(b=>b.addEventListener('click',()=>{PEOPLE[+b.dataset.undo].done=false;renderPeople();}));
+    document.querySelectorAll('[data-tips]').forEach(b=>b.addEventListener('click',()=>ask('What should I ask an older relative when I check on them in the heat?')));
+  }
+  renderPeople();
+  document.getElementById('addPerson').addEventListener('submit',e=>{e.preventDefault();const n=document.getElementById('pName').value.trim();if(!n){toast('Add a name first');return;}const area=document.getElementById('pArea').value;const a=AREAS.find(x=>x.n===area)||AREAS[3];PEOPLE.push({n,r:'Added by you',area,t:tempAt(a.x,a.y,4),done:false,c:'#E3E9F2'});document.getElementById('pName').value='';renderPeople();toast(n+' added');});
+
+  /* ---------- heat history chart ---------- */
+  function drawHistory(){
+    const yrs=['2019','2020','2021','2022','2023','2024','2025','2026'],loc=[9,12,7,19,14,8,17,21],ldn=[6,9,5,15,10,6,13,15];
+    const X0=44,X1=744,Y0=236,Y1=20,max=25,bw=(X1-X0)/yrs.length;
+    const y=v=>Y0-(Y0-Y1)*v/max;
+    let s='';[0,5,10,15,20,25].forEach(v=>{s+=`<line class="grid" x1="${X0}" x2="${X1}" y1="${y(v)}" y2="${y(v)}"/><text class="axis" x="${X0-8}" y="${y(v)+4}" text-anchor="end">${v}</text>`;});
+    yrs.forEach((yr,i)=>{const cx=X0+bw*i+bw/2,h=Y0-y(loc[i]),L=loc[i]>=18?4:loc[i]>=12?3:loc[i]>=8?2:1;
+      s+=`<rect x="${cx-bw*0.3}" y="${y(loc[i])}" width="${bw*0.6}" height="${h}" rx="6" fill="var(--h${L})"/><text class="lab" x="${cx}" y="${y(loc[i])-8}" text-anchor="middle">${loc[i]}</text><text class="axis" x="${cx}" y="${Y0+20}" text-anchor="middle">${yr}</text>`;});
+    s+=`<path d="M${yrs.map((_,i)=>`${X0+bw*i+bw/2} ${y(ldn[i])}`).join(' L ')}" fill="none" stroke="var(--ink)" stroke-width="2.5"/>`;
+    yrs.forEach((_,i)=>{s+=`<circle cx="${X0+bw*i+bw/2}" cy="${y(ldn[i])}" r="4" fill="var(--surface)" stroke="var(--ink)" stroke-width="2"/>`;});
+    document.getElementById('histChart').innerHTML=s;
+  }
+  drawHistory();
+
+  /* ---------- error state on the map ---------- */
+  document.getElementById('retryBtn').addEventListener('click',()=>{const b=document.getElementById('retryBtn');b.textContent='Loading…';setTimeout(()=>{document.getElementById('mapNotice').hidden=true;toast('Forecast updated');},700);});
+
+  /* ---------- login / register ---------- */
+  let mode='login';
+  function setMode(m){
+    mode=m;
+    document.querySelectorAll('#authSeg button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===m)));
+    const reg=m==='register';
+    document.getElementById('nameField').hidden=!reg;document.getElementById('postField').hidden=!reg;
+    document.getElementById('passHint').hidden=!reg;document.getElementById('keepRow').hidden=reg;
+    document.getElementById('aPass').setAttribute('autocomplete',reg?'new-password':'current-password');
+    document.getElementById('authBtn').textContent=reg?'Create account':'Log in';
+    document.getElementById('authMsg').textContent='';
+  }
+  document.querySelectorAll('#authSeg button').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode)));
+  document.getElementById('authForm').addEventListener('submit',e=>{
+    e.preventDefault();const msg=document.getElementById('authMsg');
+    const em=document.getElementById('aEmail').value.trim(),pw=document.getElementById('aPass').value;
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){msg.style.color='var(--h4)';msg.textContent='Enter an email address like name@example.com.';return;}
+    if(pw.length<8){msg.style.color='var(--h4)';msg.textContent='Your password needs at least 8 characters.';return;}
+    if(mode==='register'&&!document.getElementById('aName2').value.trim()){msg.style.color='var(--h4)';msg.textContent='Enter your first name.';return;}
+    msg.style.color='var(--cool)';msg.textContent=mode==='register'?'Account created. Taking you to your heat plan…':'Logged in. Taking you to Today…';
+    setTimeout(()=>show(mode==='register'?'plan':'today'),900);
+  });
+
+  /* ---------- my data ---------- */
+  function renderData(){
+    const rows=[
+      ['Account','Priya · priya.sharma@example.com','Used to log in'],
+      ['My places','Home (E8 1EA), Nursery (E8 2PB), Park','To show heat where you go'],
+      ['About me',WHO.filter(w=>who[w.k]).map(w=>w.b).join(', ')||'Nothing chosen','To tailor your heat plan'],
+      ['Alert settings','From High · evening before and morning · phone','To send your alerts'],
+      ['People I check on',PEOPLE.map(p=>p.n+' ('+p.area+')').join(', ')||'No one','First name and area only'],
+      ['Cool space reviews','Quick tags only, no photos or comments','Shown to others without your name']
+    ];
+    document.getElementById('dataList').innerHTML=rows.map(r=>`<div class="drow"><div><b>${r[0]}</b><span>${r[1]}</span><small>${r[2]}</small></div><button class="btn btn-line" type="button" data-edit="${r[0]}">Edit</button></div>`).join('');
+    document.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.edit;show(k==='People I check on'?'people':k==='Cool space reviews'?'cool':k==='Account'?'login':'plan');}));
+  }
+  renderData();
+  document.querySelectorAll('[data-view="data"]').forEach(b=>b.addEventListener('click',renderData));
+  document.getElementById('delStart').addEventListener('click',()=>{document.getElementById('delConfirm').hidden=false;document.getElementById('delStart').hidden=true;});
+  document.getElementById('delNo').addEventListener('click',()=>{document.getElementById('delConfirm').hidden=true;document.getElementById('delStart').hidden=false;});
+  document.getElementById('delYes').addEventListener('click',()=>{document.getElementById('delConfirm').hidden=true;document.getElementById('delStart').hidden=false;toast('In the real app, all your data would now be deleted');});
+
+  /* ---------- AI assistant (sample answers) ---------- */
+  const fab=document.getElementById('aiFab'),panel=document.getElementById('aiPanel'),log=document.getElementById('aiLog'),inp=document.getElementById('aiIn');
+  const SRC='Based on today’s forecast for your area and NHS heat advice';
+  function bubble(html,who){const d=document.createElement('div');d.className='msg '+who;d.innerHTML=html;log.appendChild(d);log.scrollTop=log.scrollHeight;return d;}
+  function answer(q){
+    const s=q.toLowerCase();
+    if(/check on|relative|ask them|older/.test(s))return `When you check on someone in the heat, ask:<br>• Are you drinking enough water?<br>• Is your home cool? Which room is coolest?<br>• Are your curtains closed on the sunny side?<br>• Do you feel dizzy, sick or have a headache?<br>• Do you have medicines that need keeping cool?<br><br>If they are confused or very unwell, <b>call 999</b>.<span class="src">NHS advice on looking after others in hot weather</span>`;
+    if(/park|outside|walk|3 ?pm|child|kid|baby/.test(s))return `At 3pm it will feel about <b>34°C</b> near you, which is <b>very high</b> risk. That is too hot for a young child to play in the sun.<div class="mini"><span class="L4">3pm · 34°</span><span class="L2">10am · 26°</span><span class="L2">7pm · 28°</span></div><br>Better times are <b>before 11am</b> or <b>after 7pm</b>. If you need to go out, Victoria Park lakeside has tree shade and a water fountain.<span class="src">${SRC}</span>`;
+    if(/cool(est)?\s*time|when|coolest|best time/.test(s))return `It is coolest <b>before 10am</b> (around 22–26°C) and after <b>8pm</b>. The hottest part of the day is <b>1pm to 5pm</b>, peaking at about 34°C at 4pm.<span class="src">${SRC}</span>`;
+    if(/cool place|cool space|nearest|library|shade|where/.test(s))return `The nearest cool space is <b>Hackney Central Library</b>, 350 m away. It is air-conditioned, step-free and open until 8pm. Someone reported it was quiet 15 minutes ago.<span class="src">From the cool spaces list and community reports</span>`;
+    if(/sign|exhaustion|stroke|unwell|dizzy|sick|faint/.test(s))return `Signs of <b>heat exhaustion</b> include headache, dizziness, feeling sick, cramps and being very thirsty. Move to a cool place, drink water and loosen clothing. You should feel better within 30 minutes.<br><br><b>Call 999</b> if someone is confused, faints, has a fit or stops sweating with a high temperature. That can be heatstroke.<span class="src">NHS guidance on heat exhaustion and heatstroke</span>`;
+    if(/medicine|medication|pill/.test(s))return `Keep medicines in a cool place below 25°C, away from sunny windows. Some medicines can make you more affected by heat, so ask your pharmacist or call NHS 111 if you are unsure.<span class="src">NHS heat advice</span>`;
+    return `I can only answer questions covered by our approved heat advice: safe times to go out, cool places, keeping children and older people safe, medicines in the heat and warning signs. Try one of the suggestions below, or call NHS 111 for anything else about your health.`;
+  }
+  function ask(q){
+    if(!q.trim())return;
+    if(panel.hidden)openAI();
+    bubble(q.replace(/</g,'&lt;'),'me');
+    const t=bubble('<span class="typing" aria-label="Assistant is typing"><i></i><i></i><i></i></span>','bot');
+    setTimeout(()=>{t.innerHTML=answer(q);log.scrollTop=log.scrollHeight;},700);
+  }
+  function openAI(){panel.hidden=false;fab.setAttribute('aria-expanded','true');if(!log.children.length){bubble('Hi Priya. It is a <b>high heat risk</b> day near Hackney Central. I answer common heat questions using NHS and UKHSA advice.','bot');}setTimeout(()=>inp.focus(),50);}
+  function closeAI(){panel.hidden=true;fab.setAttribute('aria-expanded','false');fab.focus();}
+  fab.addEventListener('click',()=>panel.hidden?openAI():closeAI());
+  document.getElementById('aiClose').addEventListener('click',closeAI);
+  document.getElementById('aiForm').addEventListener('submit',e=>{e.preventDefault();const q=inp.value;inp.value='';ask(q);});
+  document.querySelectorAll('[data-ask]').forEach(b=>b.addEventListener('click',()=>ask(b.dataset.ask)));
+
+  /* ---------- boot ---------- */
+  const start=(location.hash||'').replace('#','');
+  show(views.includes(start)?start:'today');
+  let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(!document.getElementById('view-today').hidden)drawToday();if(!document.getElementById('view-map').hidden)drawMap();},120);});
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{drawToday();});
+})();
+</script>
