@@ -20,9 +20,19 @@
     postorder(tree.root) would print 4 5 2 6 3 1
 */
 public class Lab3_Question4 {
-    public static void postorder(Node node){
+    static class Node {
+        int data;
+        Node left, right;
+
+        Node(int data) {
+            this.data = data;
+        }
+    }
+
+    public static void postorder(Node node) {
 
     }
+
     public static void main(String[] args) {
         
     }

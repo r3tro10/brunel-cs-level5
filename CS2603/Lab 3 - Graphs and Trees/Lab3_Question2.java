@@ -20,9 +20,19 @@
 */
 
 public class Lab3_Question2 {
-    public static void preorder(Node node){
+    static class Node {
+        int data;
+        Node left, right;
+
+        Node(int data) {
+            this.data = data;
+        }
+    }
+
+    public static void preorder(Node node) {
 
     }
+
     public static void main(String[] args) {
         
     }

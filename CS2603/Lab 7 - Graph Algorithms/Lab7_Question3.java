@@ -13,9 +13,25 @@ import java.util.*;
     *All java.util libraries have been imported for you already.
 */
 public class Lab7_Question3 {
+    static class Node implements Comparable<Node> {
+        int node;
+        int cost;
+
+        Node(int node, int cost) {
+            this.node = node;
+            this.cost = cost;
+        }
+
+        @Override
+        public int compareTo(Node other) {
+            return Integer.compare(this.cost, other.cost);
+        }
+    }
+
     public static int[] dijkstra(int[][] graph, PriorityQueue<Node> pq, int start) {
         return null;
     }
+
     public static void main(String[] args) {
         
     }  

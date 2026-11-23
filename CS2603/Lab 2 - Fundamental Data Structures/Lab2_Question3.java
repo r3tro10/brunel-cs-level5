@@ -1,3 +1,5 @@
+import java.util.LinkedList;
+
 /*
     Context:
     In Java, the LinkedList stores elements as nodes. Each node contains a link to the next node as well as the previous node. They are implemented as doubly linked lists.
@@ -10,6 +12,9 @@
 */
 
 public class Lab2_Question3 {
+    public static LinkedList<Object> swap(LinkedList<Object> l, int i, int j) {
+        return null;
+    }
 
     public static void main(String[] args) {
         

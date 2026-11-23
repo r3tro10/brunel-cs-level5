@@ -18,7 +18,7 @@
     h.removeMin() would remove node (5,𝐷) from h. During the removal, the root would need to be swapped with the right-most leaf. downHeap(i) would need to be carried out, where i is the index position of the node with the smallest value k in h (now stored at the root, first element in array heap).
 */
 public class Lab4_Question2 {
-    public class MinHeap {
+    public static class MinHeap {
         public E[] heap;
         private int size;
         private static final int DEFAULT_CAPACITY = 16;
@@ -29,7 +29,7 @@ public class Lab4_Question2 {
 
             E(int k, char value) {
                 this.k = k;
-                this.v = v;
+                this.v = value;
             }
         }
 
@@ -43,7 +43,7 @@ public class Lab4_Question2 {
         }
 
         public E removeMin() {
-
+            return null;
         }
 
         private void upHeap(int i) {
@@ -59,8 +59,8 @@ public class Lab4_Question2 {
             heap[i] = heap[j];
             heap[j] = tmp;
         }
-
     }
+
     public static void main(String[] args) {
         
     }

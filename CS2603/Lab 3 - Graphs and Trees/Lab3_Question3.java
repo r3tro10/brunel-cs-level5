@@ -20,9 +20,19 @@
     inorder(tree.root) would print 4 2 5 1 3 6
 */
 public class Lab3_Question3 {
-    public static void inorder(Node node){
+    static class Node {
+        int data;
+        Node left, right;
+
+        Node(int data) {
+            this.data = data;
+        }
+    }
+
+    public static void inorder(Node node) {
 
     }
+
     public static void main(String[] args) {
         
     }
